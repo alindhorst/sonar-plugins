@@ -10,6 +10,7 @@ import com.puppycrawl.tools.checkstyle.api.AuditListener;
  * @author lindhrst (original author)
  */
 public class DefaultAuditListener implements AuditListener {
+    //TODO: fetch config, store to disk for fallback use, copy checkstyle.Main
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultAuditListener.class);
 
