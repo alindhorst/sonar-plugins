@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE type PUBLIC
-          "-//NetBeans//DTD annotation type 1.0//EN"
-          "http://www.netbeans.org/dtds/annotation-type-1_0.dtd">
+          "-//NetBeans//DTD annotation type 1.1//EN"
+          "http://www.netbeans.org/dtds/annotation-type-1_1.dtd">
 <type name="de-alexanderlindhorst-sonarcheckstyleplugin-sonarcheckstyleannotation"
       description_key="SonarCheckstyleAnnotation"
       localizing_bundle="de.alexanderlindhorst.sonarcheckstyleplugin.Bundle"
       visible="true" 
       glyph="nbresloc:/de/alexanderlindhorst/sonarcheckstyleplugin/icons/checkstyle.png"
       highlight="#FFFF00"
-      type="line"/>
+      type="line"   
+      severity="warning"
+      custom_sidebar_color="#dddd00"
+      />
