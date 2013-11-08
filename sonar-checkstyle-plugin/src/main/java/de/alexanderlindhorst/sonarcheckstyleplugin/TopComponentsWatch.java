@@ -5,11 +5,12 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JOptionPane;
+
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.windows.OnShowing;
 import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,15 +26,16 @@ public class TopComponentsWatch implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("on showing!");
         LOGGER.debug("Attaching PropertyChangeListener to window registry to listen to newly opened files");
-        
-        WindowManager.getDefault().getRegistry().addPropertyChangeListener(new PropertyChangeListener() {
 
+        TopComponent.getRegistry().addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if (!evt.getPropertyName().equals("opened")) {
+                if (!evt.getPropertyName().equals(TopComponent.Registry.PROP_OPENED)) {
                     return;
                 }
+                JOptionPane.showMessageDialog(null, "Listener kicked in");
                 @SuppressWarnings("unchecked")
                 List<TopComponent> newlyOpenedTopComponents = getNewlyOpenedTopComponents(
                     (Set<TopComponent>) evt.getOldValue(), (Set<TopComponent>) evt.getNewValue());
@@ -45,11 +47,10 @@ public class TopComponentsWatch implements Runnable {
                     }
                     FileObject file = dataObject.getPrimaryFile();
                     LOGGER.info("Found newly opened filed {}", file);
+                    JOptionPane.showMessageDialog(null, "Found newly opened file: "+file);
                 }
-
             }
         });
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     private List<TopComponent> getNewlyOpenedTopComponents(Set<TopComponent> oldComponents,
