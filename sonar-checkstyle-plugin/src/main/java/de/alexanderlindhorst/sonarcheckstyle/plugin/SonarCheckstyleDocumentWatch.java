@@ -1,4 +1,4 @@
-package de.alexanderlindhorst.sonarcheckstyleplugin;
+package de.alexanderlindhorst.sonarcheckstyle.plugin;
 
 import java.util.List;
 

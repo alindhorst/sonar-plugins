@@ -2,11 +2,11 @@
 <!DOCTYPE type PUBLIC
           "-//NetBeans//DTD annotation type 1.1//EN"
           "http://www.netbeans.org/dtds/annotation-type-1_1.dtd">
-<type name="de-alexanderlindhorst-sonarcheckstyleplugin-sonarcheckstyleannotation"
+<type name="de-alexanderlindhorst-sonarcheckstyle-plugin-sonarcheckstyleannotation"
       description_key="SonarCheckstyleAnnotation"
-      localizing_bundle="de.alexanderlindhorst.sonarcheckstyleplugin.Bundle"
+      localizing_bundle="de.alexanderlindhorst.sonarcheckstyle.plugin.Bundle"
       visible="true" 
-      glyph="nbresloc:/de/alexanderlindhorst/sonarcheckstyleplugin/icons/checkstyle.png"
+      glyph="nbresloc:/de/alexanderlindhorst/sonarcheckstyle/plugin/icons/checkstyle.png"
       highlight="#FFFF00"
       type="line"   
       severity="warning"

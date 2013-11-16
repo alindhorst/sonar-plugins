@@ -1,4 +1,4 @@
-package de.alexanderlindhorst.sonarcheckstyleplugin;
+package de.alexanderlindhorst.sonarcheckstyle.plugin;
 
 import org.openide.text.Annotation;
 
@@ -9,7 +9,7 @@ public class SonarCheckstyleAnnotation extends Annotation {
     
     @Override
     public String getAnnotationType() {
-        return "de-alexanderlindhorst-sonarcheckstyleplugin-sonarcheckstyleannotation";
+        return "de-alexanderlindhorst-sonarcheckstyle-plugin-sonarcheckstyleannotation";
     }
 
     @Override
