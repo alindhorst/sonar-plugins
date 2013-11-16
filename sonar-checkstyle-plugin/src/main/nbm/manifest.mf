@@ -1,3 +1,4 @@
 Manifest-Version: 1.0
 OpenIDE-Module-Layer: de/alexanderlindhorst/sonarcheckstyleplugin/layer.xml
 OpenIDE-Module-Localizing-Bundle: de/alexanderlindhorst/sonarcheckstyleplugin/Bundle.properties
+OpenIDE-Module-Install: de/alexanderlindhorst/sonarcheckstyleplugin/TopComponentsWatch.class
