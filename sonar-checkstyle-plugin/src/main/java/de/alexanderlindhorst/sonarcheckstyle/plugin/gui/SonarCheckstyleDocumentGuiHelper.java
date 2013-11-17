@@ -1,7 +1,6 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.gui;
 
-import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
-import java.util.List;
+import java.util.Collection;
 
 import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileAttributeEvent;
@@ -14,8 +13,14 @@ import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.text.Line;
 import org.openide.text.Line.Set;
 import org.openide.util.Exceptions;
+import org.openide.util.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
+import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
+import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
+import de.alexanderlindhorst.sonarcheckstyleprocessor.PerFileAuditRunner;
 
 /**
  * @author lindhrst (original author)
@@ -24,40 +29,62 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstyleDocumentGuiHelper.class);
 
-    private Line getFirstLine(EditorCookie cookie) {
-        Set lineSet = cookie.getLineSet();
-        List<? extends Line> lines = lineSet.getLines();
-        if (lines.isEmpty()) {
-            return null;
-        }
-        return lines.get(0);
-    }
-
     private void clearOldAnnotations(EditorCookie cookie) {
-        Line first = getFirstLine(cookie);
-        if (first == null) {
-            return;
-        }
-        SonarCheckstyleAnnotation annotation = first.getLookup().lookup(SonarCheckstyleAnnotation.class);
-        if (annotation != null) {
-            annotation.detach();
+        Set lineSet = cookie.getLineSet();
+        for (Line line : lineSet.getLines()) {
+            Collection<? extends SonarCheckstyleAnnotation> annotations = line.getLookup().lookupAll(
+                    SonarCheckstyleAnnotation.class);
+            for (SonarCheckstyleAnnotation annotation : annotations) {
+                annotation.detach();
+            }
         }
     }
 
-    private void plasterEverythingWithAnnotations(EditorCookie cookie) {
-        Line first = getFirstLine(cookie);
-        if (first == null) {
-            return;
+    private void applyAnnotations(EditorCookie cookie, FileObject fileObject) {
+        clearOldAnnotations(cookie);
+        PerFileAuditRunner auditRunner = processFile(fileObject);
+
+        Set lineSet = cookie.getLineSet();
+        for (LocalizedMessage localizedMessage : auditRunner.getErrorMessages()) {
+            SonarCheckstyleAnnotation annotation = new SonarCheckstyleAnnotation(localizedMessage);
+            int targetIndex = localizedMessage.getLineNo() - 1;
+            if (targetIndex < 0) {
+                targetIndex = 0;
+            }
+            Line current = lineSet.getCurrent(targetIndex);
+            annotation.attach(current);
         }
-        SonarCheckstyleAnnotation annotation = new SonarCheckstyleAnnotation();
-        annotation.attach(first);
     }
 
-    private EditorCookie getEditorCookieFromFileObject(FileObject fileObject) throws DataObjectNotFoundException {
+    private PerFileAuditRunner processFile(FileObject fileObject) {
+        PerFileAuditRunner auditRunner = null;
+        try {
+            auditRunner = new PerFileAuditRunner(null, Utilities.toFile(fileObject.toURI()));
+        } catch (CheckstyleException checkstyleException) {
+            LOGGER.error("Couldn't perform checkstyle audit", checkstyleException);
+            Exceptions.attachMessage(checkstyleException, checkstyleException.getLocalizedMessage());
+            return auditRunner;
+        }
+        auditRunner.run();
+        if (auditRunner.hasAuditProblems()) {
+            for (Throwable throwable : auditRunner.getAuditExceptions()) {
+                Exceptions.attachMessage(throwable, throwable.getLocalizedMessage());
+            }
+        }
+        return auditRunner;
+    }
+
+    private EditorCookie getEditorCookieFromFileObject(FileObject fileObject) {
         if (fileObject.isVirtual()) {
             return null;
         }
-        DataObject dataObject = DataObject.find(fileObject);
+        DataObject dataObject;
+        try {
+            dataObject = DataObject.find(fileObject);
+        } catch (DataObjectNotFoundException dataObjectNotFoundException) {
+            Exceptions.printStackTrace(dataObjectNotFoundException);
+            return null;
+        }
         EditorCookie cookie = dataObject.getLookup().lookup(EditorCookie.class);
         return cookie;
     }
@@ -67,34 +94,25 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
         LOGGER.debug("fileFolderCreated - nothing to do");
     }
 
+    /* Implement Listener Methods */
     @Override
     public void fileDataCreated(FileEvent fe) {
-        LOGGER.debug("fileChanged - plastering it");
-        EditorCookie cookie = null;
-        try {
-            cookie = getEditorCookieFromFileObject(fe.getFile());
-        } catch (DataObjectNotFoundException ex) {
-            Exceptions.printStackTrace(ex);
-        }
+        LOGGER.debug("fileChanged {}", fe.getFile().toURI());
+        EditorCookie cookie = getEditorCookieFromFileObject(fe.getFile());
         if (cookie == null) {
             return;
         }
-        plasterEverythingWithAnnotations(cookie);
+        applyAnnotations(cookie, fe.getFile());
     }
 
     @Override
     public void fileChanged(FileEvent fe) {
-        LOGGER.debug("fileChanged - plastering it");
-        EditorCookie cookie = null;
-        try {
-            cookie = getEditorCookieFromFileObject(fe.getFile());
-        } catch (DataObjectNotFoundException ex) {
-            Exceptions.printStackTrace(ex);
-        }
+        LOGGER.debug("fileChanged: {}", fe.getFile().toURI());
+        EditorCookie cookie = getEditorCookieFromFileObject(fe.getFile());
         if (cookie == null) {
             return;
         }
-        plasterEverythingWithAnnotations(cookie);
+        applyAnnotations(cookie, fe.getFile());
     }
 
     @Override
