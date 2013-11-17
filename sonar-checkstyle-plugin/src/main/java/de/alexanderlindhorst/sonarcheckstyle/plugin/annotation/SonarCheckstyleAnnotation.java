@@ -1,4 +1,4 @@
-package de.alexanderlindhorst.sonarcheckstyle.plugin;
+package de.alexanderlindhorst.sonarcheckstyle.plugin.annotation;
 
 import org.openide.text.Annotation;
 

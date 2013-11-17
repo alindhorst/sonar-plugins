@@ -1,5 +1,6 @@
-package de.alexanderlindhorst.sonarcheckstyle.plugin;
+package de.alexanderlindhorst.sonarcheckstyle.plugin.gui;
 
+import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
 import java.util.List;
 
 import org.openide.cookies.EditorCookie;
@@ -19,9 +20,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author lindhrst (original author)
  */
-public class SonarCheckstyleDocumentWatch implements FileChangeListener {
+public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstyleDocumentWatch.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstyleDocumentGuiHelper.class);
 
     private Line getFirstLine(EditorCookie cookie) {
         Set lineSet = cookie.getLineSet();
