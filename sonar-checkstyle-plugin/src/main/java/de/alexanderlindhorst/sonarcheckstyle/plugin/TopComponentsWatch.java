@@ -10,6 +10,7 @@ import javax.swing.JOptionPane;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.modules.ModuleInstall;
+import org.openide.windows.OnShowing;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import org.slf4j.Logger;
@@ -18,11 +19,14 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 /**
- * @author lindhrst (original author)
+ * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
+ * open windows.
  */
-public class TopComponentsWatch implements PropertyChangeListener {
+@OnShowing
+public class TopComponentsWatch implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopComponentsWatch.class);
+    private static final TopComponentPropertyChangeListener LISTENER = new TopComponentPropertyChangeListener();
 
     private static List<TopComponent> getNewlyOpenedTopComponents(Set<TopComponent> oldComponents,
         Set<TopComponent> newComponents) {
@@ -35,25 +39,36 @@ public class TopComponentsWatch implements PropertyChangeListener {
         return difference;
     }
 
+    /**
+     * Hooks up the listener with the registry in a different thread
+     */
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        LOGGER.info("Received event: {}", evt.toString());
-        if (!evt.getPropertyName().equals(TopComponent.Registry.PROP_OPENED)) {
-            return;
-        }
-        JOptionPane.showMessageDialog(null, "Listener kicked in");
-        @SuppressWarnings("unchecked")
-        List<TopComponent> newlyOpenedTopComponents = getNewlyOpenedTopComponents(
-            (Set<TopComponent>) evt.getOldValue(), (Set<TopComponent>) evt.getNewValue());
-        for (TopComponent topComponent : newlyOpenedTopComponents) {
-            DataObject dataObject = topComponent.getLookup().lookup(DataObject.class);
-            if (dataObject == null) {
-                LOGGER.warn("Couldn't find data object for top component");
+    public void run() {
+        LOGGER.info("Attaching PropertyChangeListener to window registry to listen to newly opened files");
+        WindowManager.getDefault().getRegistry().addPropertyChangeListener(LISTENER);
+        LOGGER.debug("Successfully attached PropertyChangeListener to window registry");
+    }
+
+    private static class TopComponentPropertyChangeListener implements PropertyChangeListener {
+
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (!evt.getPropertyName().equals(TopComponent.Registry.PROP_OPENED)) {
                 return;
             }
-            FileObject file = dataObject.getPrimaryFile();
-            LOGGER.info("Found newly opened filed {}", file);
-            JOptionPane.showMessageDialog(null, "Found newly opened file: " + file);
+            LOGGER.debug("Received event: {}", evt.toString());
+            @SuppressWarnings("unchecked")
+            List<TopComponent> newlyOpenedTopComponents = getNewlyOpenedTopComponents(
+                (Set<TopComponent>) evt.getOldValue(), (Set<TopComponent>) evt.getNewValue());
+            for (TopComponent topComponent : newlyOpenedTopComponents) {
+                DataObject dataObject = topComponent.getLookup().lookup(DataObject.class);
+                if (dataObject == null) {
+                    LOGGER.warn("Couldn't find data object for top component");
+                    return;
+                }
+                FileObject file = dataObject.getPrimaryFile();
+                LOGGER.debug("Found newly opened filed {}", file);
+            }
         }
     }
 }

@@ -12,7 +12,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netbeans.platform.version>RELEASE70</netbeans.platform.version>
+        <netbeans.platform.version>RELEASE72</netbeans.platform.version>
         <logback.version>1.0.13</logback.version>
         <slf4j.version>1.7.5</slf4j.version>
     </properties>
