@@ -19,7 +19,8 @@ import com.google.common.collect.Lists;
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
 
 /**
- * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in open windows.
+ * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
+ * open windows.
  */
 @OnShowing
 public class TopComponentsWatch implements Runnable {
@@ -69,6 +70,10 @@ public class TopComponentsWatch implements Runnable {
         Set<TopComponent> opened = WindowManager.getDefault().getRegistry().getOpened();
         for (TopComponent topComponent : opened) {
             FileObject file = getUnderlyingJavaFile(topComponent);
+            LOGGER.debug("Found already open file editor window for {}", file);
+            if (file == null) {
+                continue;
+            }
             GUI_HELPER.fileChanged(new FileEvent(file));
         }
     }
