@@ -1,6 +1,7 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.gui;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileAttributeEvent;
@@ -17,6 +18,7 @@ import org.openide.util.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Maps;
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
@@ -43,16 +45,25 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
     private void applyAnnotations(EditorCookie cookie, FileObject fileObject) {
         clearOldAnnotations(cookie);
         PerFileAuditRunner auditRunner = processFile(fileObject);
+        Map<Integer, SonarCheckstyleAnnotation> lineAnnotationMap = Maps.newHashMap();
 
         Set lineSet = cookie.getLineSet();
         for (LocalizedMessage localizedMessage : auditRunner.getErrorMessages()) {
-            SonarCheckstyleAnnotation annotation = new SonarCheckstyleAnnotation(localizedMessage);
             int targetIndex = localizedMessage.getLineNo() - 1;
             if (targetIndex < 0) {
                 targetIndex = 0;
             }
             Line current = lineSet.getCurrent(targetIndex);
-            annotation.attach(current);
+            SonarCheckstyleAnnotation annotation = lineAnnotationMap.get(targetIndex);
+            if (annotation == null) {
+                //new annotation at this line
+                annotation = new SonarCheckstyleAnnotation(localizedMessage);
+                annotation.attach(current);
+                lineAnnotationMap.put(targetIndex, annotation);
+            } else {
+                //annotation is already there
+                annotation.addErrorMessage(localizedMessage);
+            }
         }
     }
 

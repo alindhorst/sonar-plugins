@@ -1,7 +1,10 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.annotation;
 
+import java.util.List;
+
 import org.openide.text.Annotation;
 
+import com.google.common.collect.Lists;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 
 /**
@@ -9,10 +12,14 @@ import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
  */
 public class SonarCheckstyleAnnotation extends Annotation {
 
-    private final LocalizedMessage errorMessage;
+    private final List<LocalizedMessage> errorMessages = Lists.newArrayList();
 
     public SonarCheckstyleAnnotation(LocalizedMessage errorMessage) {
-        this.errorMessage = errorMessage;
+        addErrorMessage(errorMessage);
+    }
+
+    public void addErrorMessage(LocalizedMessage errorMessage) {
+        errorMessages.add(errorMessage);
     }
 
     @Override
@@ -23,10 +30,17 @@ public class SonarCheckstyleAnnotation extends Annotation {
     @Override
     public String getShortDescription() {
         StringBuilder builder = new StringBuilder();
-        builder.append(errorMessage.getSeverityLevel()).append(" - ");
-        builder.append(errorMessage.getMessage());
-        builder.append(" [").append(errorMessage.getLineNo()).append('/').append(errorMessage.getColumnNo()).append(
-                "]");
+        boolean hasSeveral = errorMessages.size() > 1;
+        if (hasSeveral) {
+            builder.append(errorMessages.size()).append(" problems:");
+        }
+        for (LocalizedMessage errorMessage : errorMessages) {
+            if (hasSeveral) {
+                builder.append("\n\t- ");
+            }
+            builder.append(errorMessage.getSeverityLevel().getName().toUpperCase()).append(": ");
+            builder.append(errorMessage.getMessage());
+        }
         return builder.toString();
     }
 }

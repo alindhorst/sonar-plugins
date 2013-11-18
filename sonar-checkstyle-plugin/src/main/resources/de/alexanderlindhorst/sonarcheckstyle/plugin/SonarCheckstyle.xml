@@ -7,7 +7,6 @@
       localizing_bundle="de.alexanderlindhorst.sonarcheckstyle.plugin.Bundle"
       visible="true" 
       glyph="nbresloc:/de/alexanderlindhorst/sonarcheckstyle/plugin/icons/checkstyle.png"
-      highlight="#FFFF00"
       type="line"   
       severity="warning"
       custom_sidebar_color="#dddd00"
