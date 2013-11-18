@@ -15,20 +15,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
+
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
 
 /**
- * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
- * open windows.
+ * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in open windows.
  */
 @OnShowing
 public class TopComponentsWatch implements Runnable {
 
+    private static final String JAVA_MIMETYPE = "text/x-java";
     private static final Logger LOGGER = LoggerFactory.getLogger(TopComponentsWatch.class);
     private static final TopComponentPropertyChangeListener LISTENER = new TopComponentPropertyChangeListener();
+    private static final SonarCheckstyleDocumentGuiHelper GUI_HELPER = new SonarCheckstyleDocumentGuiHelper();
 
     private static List<TopComponent> getNewlyOpenedTopComponents(Set<TopComponent> oldComponents,
-        Set<TopComponent> newComponents) {
+            Set<TopComponent> newComponents) {
         List<TopComponent> difference = Lists.newArrayList();
         for (TopComponent topComponent : newComponents) {
             if (!oldComponents.contains(topComponent)) {
@@ -36,6 +38,23 @@ public class TopComponentsWatch implements Runnable {
             }
         }
         return difference;
+    }
+
+    private static boolean isJavaFile(FileObject file) {
+        return file == null || !file.getMIMEType().equals(JAVA_MIMETYPE);
+    }
+
+    private static FileObject getUnderlyingJavaFile(TopComponent topComponent) {
+        DataObject dataObject = topComponent.getLookup().lookup(DataObject.class);
+        if (dataObject == null) {
+            LOGGER.warn("Couldn't find data object for top component");
+            return null;
+        }
+        FileObject file = dataObject.getPrimaryFile();
+        if (isJavaFile(file)) {
+            return null;
+        }
+        return file;
     }
 
     /**
@@ -46,6 +65,12 @@ public class TopComponentsWatch implements Runnable {
         LOGGER.info("Attaching PropertyChangeListener to window registry to listen to newly opened files");
         WindowManager.getDefault().getRegistry().addPropertyChangeListener(LISTENER);
         LOGGER.debug("Successfully attached PropertyChangeListener to window registry");
+        //also look at already open windows
+        Set<TopComponent> opened = WindowManager.getDefault().getRegistry().getOpened();
+        for (TopComponent topComponent : opened) {
+            FileObject file = getUnderlyingJavaFile(topComponent);
+            GUI_HELPER.fileChanged(new FileEvent(file));
+        }
     }
 
     private static class TopComponentPropertyChangeListener implements PropertyChangeListener {
@@ -58,18 +83,15 @@ public class TopComponentsWatch implements Runnable {
             LOGGER.debug("Received event: {}", evt.toString());
             @SuppressWarnings("unchecked")
             List<TopComponent> newlyOpenedTopComponents = getNewlyOpenedTopComponents(
-                (Set<TopComponent>) evt.getOldValue(), (Set<TopComponent>) evt.getNewValue());
+                    (Set<TopComponent>) evt.getOldValue(), (Set<TopComponent>) evt.getNewValue());
             for (TopComponent topComponent : newlyOpenedTopComponents) {
-                DataObject dataObject = topComponent.getLookup().lookup(DataObject.class);
-                if (dataObject == null) {
-                    LOGGER.warn("Couldn't find data object for top component");
-                    return;
+                FileObject file = getUnderlyingJavaFile(topComponent);
+                if (file == null) {
+                    continue;
                 }
-                FileObject file = dataObject.getPrimaryFile();
                 LOGGER.debug("Found newly opened filed {}", file);
-                SonarCheckstyleDocumentGuiHelper helper = new SonarCheckstyleDocumentGuiHelper();
-                file.addFileChangeListener(helper);
-                helper.fileChanged(new FileEvent(file));
+                file.addFileChangeListener(GUI_HELPER);
+                GUI_HELPER.fileChanged(new FileEvent(file));
             }
         }
     }
