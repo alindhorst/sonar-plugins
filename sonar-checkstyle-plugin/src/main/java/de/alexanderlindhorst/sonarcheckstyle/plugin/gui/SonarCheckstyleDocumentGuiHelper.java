@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.openide.cookies.EditorCookie;
+import org.openide.cookies.LineCookie;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
+
 import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
 import de.alexanderlindhorst.sonarcheckstyleprocessor.PerFileAuditRunner;
 
@@ -31,7 +33,7 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstyleDocumentGuiHelper.class);
 
-    private void clearOldAnnotations(EditorCookie cookie) {
+    private void clearOldAnnotations(LineCookie cookie) {
         Set lineSet = cookie.getLineSet();
         for (Line line : lineSet.getLines()) {
             Collection<? extends SonarCheckstyleAnnotation> annotations = line.getLookup().lookupAll(
@@ -42,7 +44,7 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
         }
     }
 
-    private void applyAnnotations(EditorCookie cookie, FileObject fileObject) {
+    private void applyAnnotations(LineCookie cookie, FileObject fileObject) {
         clearOldAnnotations(cookie);
         PerFileAuditRunner auditRunner = processFile(fileObject);
         Map<Integer, SonarCheckstyleAnnotation> lineAnnotationMap = Maps.newHashMap();
@@ -85,7 +87,7 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
         return auditRunner;
     }
 
-    private EditorCookie getEditorCookieFromFileObject(FileObject fileObject) {
+    private LineCookie getLineCookieFromFileObject(FileObject fileObject) {
         if (fileObject.isVirtual()) {
             return null;
         }
@@ -96,8 +98,7 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
             Exceptions.printStackTrace(dataObjectNotFoundException);
             return null;
         }
-        EditorCookie cookie = dataObject.getLookup().lookup(EditorCookie.class);
-        return cookie;
+        return dataObject.getLookup().lookup(LineCookie.class);
     }
 
     @Override
@@ -105,12 +106,15 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
         LOGGER.debug("fileFolderCreated - nothing to do");
     }
 
-    /* Implement Listener Methods */
+    /*
+     * Implement Listener Methods
+     */
     @Override
     public void fileDataCreated(FileEvent fe) {
         LOGGER.debug("fileChanged {}", fe.getFile().toURI());
-        EditorCookie cookie = getEditorCookieFromFileObject(fe.getFile());
+        LineCookie cookie = getLineCookieFromFileObject(fe.getFile());
         if (cookie == null) {
+            LOGGER.debug("Couldn't find cookie for {}", fe.getFile().toURI());
             return;
         }
         applyAnnotations(cookie, fe.getFile());
@@ -119,8 +123,9 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
     @Override
     public void fileChanged(FileEvent fe) {
         LOGGER.debug("fileChanged: {}", fe.getFile().toURI());
-        EditorCookie cookie = getEditorCookieFromFileObject(fe.getFile());
+        LineCookie cookie = getLineCookieFromFileObject(fe.getFile());
         if (cookie == null) {
+            LOGGER.debug("Couldn't find cookie for {}", fe.getFile().toURI());
             return;
         }
         applyAnnotations(cookie, fe.getFile());
