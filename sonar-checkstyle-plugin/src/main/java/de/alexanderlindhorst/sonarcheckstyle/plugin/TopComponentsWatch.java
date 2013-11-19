@@ -67,23 +67,30 @@ public class TopComponentsWatch implements Runnable {
         WindowManager.getDefault().getRegistry().addPropertyChangeListener(LISTENER);
         LOGGER.debug("Successfully attached PropertyChangeListener to window registry");
         //also look at already open windows
-        Set<TopComponent> opened = WindowManager.getDefault().getRegistry().getOpened();
-        for (TopComponent topComponent : opened) {
-            FileObject file = getUnderlyingJavaFile(topComponent);
-            if (file == null) {
-                continue;
+        WindowManager.getDefault().invokeWhenUIReady(new Runnable() {
+
+            @Override
+            public void run() {
+                Set<TopComponent> opened = WindowManager.getDefault().getRegistry().getOpened();
+                for (TopComponent topComponent : opened) {
+                    FileObject file = getUnderlyingJavaFile(topComponent);
+                    if (file == null) {
+                        continue;
+                    }
+                    LOGGER.debug("Found already open file editor window for {}", file);
+                    LISTENER.propertyChange(new PropertyChangeEvent(this, TopComponent.Registry.PROP_OPENED, Collections.emptyList(),
+                            Collections.singleton(topComponent)));
+                }
             }
-            LOGGER.debug("Found already open file editor window for {}", file);
-            LISTENER.propertyChange(new PropertyChangeEvent(this, TopComponent.Registry.PROP_OPENED, Collections.emptyList(),
-                    Collections.singleton(topComponent)));
-        }
+        });
     }
 
     private static class TopComponentPropertyChangeListener implements PropertyChangeListener {
 
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-            if (!evt.getPropertyName().equals(TopComponent.Registry.PROP_OPENED)) {
+            String mode = evt.getPropertyName();
+            if (!(mode.equals(TopComponent.Registry.PROP_OPENED) || mode.equals(TopComponent.Registry.PROP_TC_OPENED))) {
                 return;
             }
             LOGGER.debug("Received event: {}", evt.toString());

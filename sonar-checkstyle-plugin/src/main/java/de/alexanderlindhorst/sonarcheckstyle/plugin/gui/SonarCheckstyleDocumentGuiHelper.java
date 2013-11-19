@@ -3,7 +3,6 @@ package de.alexanderlindhorst.sonarcheckstyle.plugin.gui;
 import java.util.Collection;
 import java.util.Map;
 
-import org.openide.cookies.EditorCookie;
 import org.openide.cookies.LineCookie;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
