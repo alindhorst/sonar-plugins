@@ -16,11 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
-
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
 
 /**
- * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in open windows.
+ * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
+ * open windows.
  */
 @OnShowing
 public class TopComponentsWatch implements Runnable {
@@ -52,6 +52,7 @@ public class TopComponentsWatch implements Runnable {
             return null;
         }
         FileObject file = dataObject.getPrimaryFile();
+
         if (isJavaFile(file)) {
             return null;
         }
@@ -68,7 +69,6 @@ public class TopComponentsWatch implements Runnable {
         LOGGER.debug("Successfully attached PropertyChangeListener to window registry");
         //also look at already open windows
         WindowManager.getDefault().invokeWhenUIReady(new Runnable() {
-
             @Override
             public void run() {
                 Set<TopComponent> opened = WindowManager.getDefault().getRegistry().getOpened();
@@ -78,7 +78,8 @@ public class TopComponentsWatch implements Runnable {
                         continue;
                     }
                     LOGGER.debug("Found already open file editor window for {}", file);
-                    LISTENER.propertyChange(new PropertyChangeEvent(this, TopComponent.Registry.PROP_OPENED, Collections.emptyList(),
+                    LISTENER.propertyChange(new PropertyChangeEvent(this, TopComponent.Registry.PROP_OPENED,
+                            Collections.emptyList(),
                             Collections.singleton(topComponent)));
                 }
             }
@@ -90,7 +91,7 @@ public class TopComponentsWatch implements Runnable {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             String mode = evt.getPropertyName();
-            if (!(mode.equals(TopComponent.Registry.PROP_OPENED) || mode.equals(TopComponent.Registry.PROP_TC_OPENED))) {
+            if (!(mode.equals(TopComponent.Registry.PROP_OPENED))) {
                 return;
             }
             LOGGER.debug("Received event: {}", evt.toString());
