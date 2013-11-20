@@ -34,8 +34,16 @@ public class TopComponentsWatch implements Runnable {
     private static final TopComponentPropertyChangeListener LISTENER = new TopComponentPropertyChangeListener();
     private static final SonarCheckstyleDocumentGuiHelper GUI_HELPER = new SonarCheckstyleDocumentGuiHelper();
 
+    /* TODO: rewrite this to also honor some kind of registry from GUI_HELPER */
     private static List<TopComponent> getNewlyOpenedTopComponents(Collection<TopComponent> oldComponents,
             Collection<TopComponent> newComponents) {
+        if (LOGGER.isDebugEnabled()) {
+            for (TopComponent topComponent : newComponents) {
+                if (oldComponents.contains(topComponent)) {
+                    LOGGER.debug("Component {} is old, removing it", topComponent);
+                }
+            }
+        }
         List<TopComponent> difference = new ArrayList<TopComponent>(newComponents);
         difference.removeAll(oldComponents);
         return difference;
