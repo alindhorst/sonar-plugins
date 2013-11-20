@@ -32,6 +32,16 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstyleDocumentGuiHelper.class);
 
+    public void processAnnotationsFor(FileObject fileObject) {
+        LineCookie cookie = getLineCookieFromFileObject(fileObject);
+        if (cookie == null) {
+            LOGGER.debug("Couldn't find cookie for {}", fileObject.toURI());
+            return;
+        }
+        clearOldAnnotations(cookie);
+        applyAnnotations(cookie, fileObject);
+    }
+
     private void clearOldAnnotations(LineCookie cookie) {
         Set lineSet = cookie.getLineSet();
         for (Line line : lineSet.getLines()) {
@@ -44,7 +54,6 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
     }
 
     private void applyAnnotations(LineCookie cookie, FileObject fileObject) {
-        clearOldAnnotations(cookie);
         PerFileAuditRunner auditRunner = processFile(fileObject);
         Map<Integer, SonarCheckstyleAnnotation> lineAnnotationMap = Maps.newHashMap();
 
@@ -111,23 +120,13 @@ public class SonarCheckstyleDocumentGuiHelper implements FileChangeListener {
     @Override
     public void fileDataCreated(FileEvent fe) {
         LOGGER.debug("fileChanged {}", fe.getFile().toURI());
-        LineCookie cookie = getLineCookieFromFileObject(fe.getFile());
-        if (cookie == null) {
-            LOGGER.debug("Couldn't find cookie for {}", fe.getFile().toURI());
-            return;
-        }
-        applyAnnotations(cookie, fe.getFile());
+        processAnnotationsFor(fe.getFile());
     }
 
     @Override
     public void fileChanged(FileEvent fe) {
-        LOGGER.debug("fileChanged: {}", fe.getFile().toURI());
-        LineCookie cookie = getLineCookieFromFileObject(fe.getFile());
-        if (cookie == null) {
-            LOGGER.debug("Couldn't find cookie for {}", fe.getFile().toURI());
-            return;
-        }
-        applyAnnotations(cookie, fe.getFile());
+        LOGGER.debug("fileChanged {}", fe.getFile());
+        processAnnotationsFor(fe.getFile());
     }
 
     @Override

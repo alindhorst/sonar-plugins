@@ -109,7 +109,7 @@ public class TopComponentsWatch implements Runnable {
                 }
                 LOGGER.debug("Found newly opened filed {}", file);
                 file.addFileChangeListener(GUI_HELPER);
-                GUI_HELPER.fileChanged(new FileEvent(file));
+                GUI_HELPER.processAnnotationsFor(file);
             }
         }
     }
