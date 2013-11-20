@@ -2,6 +2,7 @@ package de.alexanderlindhorst.sonarcheckstyle.plugin;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -19,8 +20,7 @@ import com.google.common.collect.Lists;
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
 
 /**
- * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
- * open windows.
+ * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in open windows.
  */
 @OnShowing
 public class TopComponentsWatch implements Runnable {
@@ -30,8 +30,8 @@ public class TopComponentsWatch implements Runnable {
     private static final TopComponentPropertyChangeListener LISTENER = new TopComponentPropertyChangeListener();
     private static final SonarCheckstyleDocumentGuiHelper GUI_HELPER = new SonarCheckstyleDocumentGuiHelper();
 
-    private static List<TopComponent> getNewlyOpenedTopComponents(Set<TopComponent> oldComponents,
-            Set<TopComponent> newComponents) {
+    private static List<TopComponent> getNewlyOpenedTopComponents(Collection<TopComponent> oldComponents,
+            Collection<TopComponent> newComponents) {
         List<TopComponent> difference = Lists.newArrayList();
         for (TopComponent topComponent : newComponents) {
             if (!oldComponents.contains(topComponent)) {
@@ -97,7 +97,7 @@ public class TopComponentsWatch implements Runnable {
             LOGGER.debug("Received event: {}", evt.toString());
             @SuppressWarnings("unchecked")
             List<TopComponent> newlyOpenedTopComponents = getNewlyOpenedTopComponents(
-                    (Set<TopComponent>) evt.getOldValue(), (Set<TopComponent>) evt.getNewValue());
+                    (Collection<TopComponent>) evt.getOldValue(), (Collection<TopComponent>) evt.getNewValue());
             for (TopComponent topComponent : newlyOpenedTopComponents) {
                 FileObject file = getUnderlyingJavaFile(topComponent);
                 if (file == null) {
