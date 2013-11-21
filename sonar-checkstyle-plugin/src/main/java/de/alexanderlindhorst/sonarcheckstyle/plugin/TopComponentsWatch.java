@@ -2,19 +2,9 @@ package de.alexanderlindhorst.sonarcheckstyle.plugin;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import org.netbeans.api.java.project.JavaProjectConstants;
-import org.netbeans.api.java.source.JavaSource;
-import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.api.project.SourceGroup;
-import org.netbeans.api.project.ui.OpenProjects;
-import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
-import org.openide.loaders.DataObject;
 import org.openide.windows.OnShowing;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -23,57 +13,20 @@ import org.slf4j.LoggerFactory;
 
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
 
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.getClosedJavaTopComponents;
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.getOpenedJavaTopComponents;
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
+
 /**
- * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in open windows.
+ * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
+ * open windows.
  */
 @OnShowing
 public class TopComponentsWatch implements Runnable {
 
-    private static final String JAVA_MIMETYPE = JavaProjectConstants.SOURCES_TYPE_JAVA;
     private static final Logger LOGGER = LoggerFactory.getLogger(TopComponentsWatch.class);
     private static final TopComponentPropertyChangeListener LISTENER = new TopComponentPropertyChangeListener();
-    private static final SonarCheckstyleDocumentGuiHelper GUI_HELPER = new SonarCheckstyleDocumentGuiHelper();
-
-    /* TODO: rewrite this to also honor some kind of registry from GUI_HELPER */
-    private static List<TopComponent> getNewlyOpenedTopComponents(Collection<TopComponent> oldComponents,
-            Collection<TopComponent> newComponents) {
-        if (LOGGER.isDebugEnabled()) {
-            for (TopComponent topComponent : newComponents) {
-                if (oldComponents.contains(topComponent)) {
-                    LOGGER.debug("Component {} is old, removing it", topComponent);
-                }
-            }
-        }
-        List<TopComponent> difference = new ArrayList<TopComponent>(newComponents);
-        difference.removeAll(oldComponents);
-        return difference;
-    }
-
-    private static FileObject getUnderlyingFile(TopComponent topComponent) {
-        DataObject dataObject = topComponent.getLookup().lookup(DataObject.class);
-        if (dataObject == null) {
-            LOGGER.warn("Couldn't find data object for top component");
-            return null;
-        }
-        return dataObject.getPrimaryFile();
-    }
-
-    private static JavaSource getUnderlyingJavaFile(TopComponent topComponent) {
-        FileObject fileObject = getUnderlyingFile(topComponent);
-        if (fileObject == null) {
-            LOGGER.warn("No file object found");
-            return null;
-        }
-        for (Project project : OpenProjects.getDefault().getOpenProjects()) {
-            SourceGroup[] sourceGroups = ProjectUtils.getSources(project).getSourceGroups(JAVA_MIMETYPE);
-            for (SourceGroup sourceGroup : sourceGroups) {
-                if (sourceGroup.contains(fileObject)) {
-                    return JavaSource.forFileObject(fileObject);
-                }
-            }
-        }
-        return null;
-    }
+    private static final SonarCheckstyleDocumentGuiHelper GUI_HELPER = SonarCheckstyleDocumentGuiHelper.getDefault();
 
     /**
      * Hooks up the listener with the registry in a different thread
@@ -89,35 +42,38 @@ public class TopComponentsWatch implements Runnable {
 
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
+            LOGGER.debug("Received some event: {}", evt.toString());
             String mode = evt.getPropertyName();
-            if (!(mode.equals(TopComponent.Registry.PROP_OPENED))) {
-                return;
+            //Todo: figure out the different ways here
+//            if (mode.equals(TopComponent.Registry.PROP_OPENED) || mode.equals(TopComponent.Registry.PROP_ACTIVATED)
+//                    || mode.equals(TopComponent.Registry.PROP_ACTIVATED_NODES) || mode.equals(
+//                    TopComponent.Registry.PROP_TC_OPENED)) {
+//                LOGGER.debug("Received {} PropertyChangeEvent", mode);
+//                updateComponentAnnotations(evt);
+//            } else {
+//                closeComponent(evt);
+//            }
+            if (mode.equals(TopComponent.Registry.PROP_OPENED)) {
+                updateComponentAnnotations(evt);
             }
-            LOGGER.debug("Received event: {}", evt.toString());
+        }
+
+        private void updateComponentAnnotations(PropertyChangeEvent evt) {
+            LOGGER.debug("Received update event: {}", evt.toString());
             @SuppressWarnings("unchecked")
-            List<TopComponent> newlyOpenedTopComponents = getNewlyOpenedTopComponents(
-                    (Collection<TopComponent>) evt.getOldValue(), (Collection<TopComponent>) evt.getNewValue());
+            List<TopComponent> newlyOpenedTopComponents = getOpenedJavaTopComponents(evt);
             for (TopComponent topComponent : newlyOpenedTopComponents) {
-                JavaSource source = getUnderlyingJavaFile(topComponent);
-                if (source == null) {
-                    continue;
-                }
-                Collection<FileObject> fileObjects = source.getFileObjects();
-                //register a file a listener
-                FileObject file = null;
-                for (FileObject fileObject : fileObjects) {
-                    if (!fileObject.isVirtual()) {
-                        file = fileObject;
-                        break;
-                    }
-                }
-                if (file == null) {
-                    LOGGER.warn("Couldn't find file for Java source {}, will skip", source);
-                    return;
-                }
+                FileObject file = getUnderlyingFile(topComponent);
                 LOGGER.debug("Found newly opened filed {}", file);
-                file.addFileChangeListener(GUI_HELPER);
-                GUI_HELPER.processAnnotationsFor(file);
+                //file.addFileChangeListener(GUI_HELPER);
+                GUI_HELPER.processAnnotationsFor(topComponent, file);
+            }
+        }
+
+        private void closeComponent(PropertyChangeEvent event) {
+            List<TopComponent> closedTopComponents = getClosedJavaTopComponents(event);
+            for (TopComponent topComponent : closedTopComponents) {
+                GUI_HELPER.removeAnnotationsSupportFor(topComponent, getUnderlyingFile(topComponent));
             }
         }
     }
