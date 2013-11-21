@@ -4,7 +4,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
-import org.openide.filesystems.FileObject;
 import org.openide.windows.OnShowing;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -12,14 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
-
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.getClosedJavaTopComponents;
-import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.getOpenedJavaTopComponents;
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getOpenedJavaTopComponent;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
 
 /**
- * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
- * open windows.
+ * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in open windows.
  */
 @OnShowing
 public class TopComponentsWatch implements Runnable {
@@ -42,32 +39,27 @@ public class TopComponentsWatch implements Runnable {
 
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-            LOGGER.debug("Received some event: {}", evt.toString());
-            String mode = evt.getPropertyName();
-            //Todo: figure out the different ways here
-//            if (mode.equals(TopComponent.Registry.PROP_OPENED) || mode.equals(TopComponent.Registry.PROP_ACTIVATED)
-//                    || mode.equals(TopComponent.Registry.PROP_ACTIVATED_NODES) || mode.equals(
-//                    TopComponent.Registry.PROP_TC_OPENED)) {
-//                LOGGER.debug("Received {} PropertyChangeEvent", mode);
-//                updateComponentAnnotations(evt);
-//            } else {
-//                closeComponent(evt);
-//            }
-            if (mode.equals(TopComponent.Registry.PROP_OPENED)) {
-                updateComponentAnnotations(evt);
+            EventMode eventMode = EventMode.findByEventNameValue(evt.getPropertyName());
+            switch (eventMode) {
+            case ACTIVATED:
+            case OPEN:
+                updateOpenedComponent(evt);
+                break;
+            case UNSUPPORTED:
+                LOGGER.debug("event mode not supported: {}", evt.getPropertyName());
+                break;
+            default:
+                throw new AssertionError();
             }
         }
 
-        private void updateComponentAnnotations(PropertyChangeEvent evt) {
-            LOGGER.debug("Received update event: {}", evt.toString());
-            @SuppressWarnings("unchecked")
-            List<TopComponent> newlyOpenedTopComponents = getOpenedJavaTopComponents(evt);
-            for (TopComponent topComponent : newlyOpenedTopComponents) {
-                FileObject file = getUnderlyingFile(topComponent);
-                LOGGER.debug("Found newly opened filed {}", file);
-                //file.addFileChangeListener(GUI_HELPER);
-                GUI_HELPER.processAnnotationsFor(topComponent, file);
+        private void updateOpenedComponent(PropertyChangeEvent evt) {
+            TopComponent openedJavaTopComponent = getOpenedJavaTopComponent(evt);
+            if (openedJavaTopComponent==null) {
+                LOGGER.debug("No Java TopComponent found in {}",evt);
+                return ;
             }
+            GUI_HELPER.processAnnotationsFor(openedJavaTopComponent, getUnderlyingFile(openedJavaTopComponent));
         }
 
         private void closeComponent(PropertyChangeEvent event) {
@@ -75,6 +67,28 @@ public class TopComponentsWatch implements Runnable {
             for (TopComponent topComponent : closedTopComponents) {
                 GUI_HELPER.removeAnnotationsSupportFor(topComponent, getUnderlyingFile(topComponent));
             }
+        }
+    }
+
+    private static enum EventMode {
+
+        OPEN(TopComponent.Registry.PROP_TC_OPENED),
+        ACTIVATED(TopComponent.Registry.PROP_ACTIVATED),
+        UNSUPPORTED("");
+
+        private final String eventName;
+
+        private EventMode(String eventName) {
+            this.eventName = eventName;
+        }
+
+        private static EventMode findByEventNameValue(String value) {
+            for (EventMode eventMode : values()) {
+                if (value.equals(eventMode.eventName)) {
+                    return eventMode;
+                }
+            }
+            return UNSUPPORTED;
         }
     }
 }

@@ -12,7 +12,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.text.Line;
-import org.openide.text.Line.Set;
 import org.openide.util.Exceptions;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
@@ -36,24 +35,8 @@ public class OpenJavaSourceRegistry {
     private static final Map<JavaSource, List<SonarCheckstyleAnnotation>> ANNOTATION_REGISTRY = Maps.newHashMap();
     private static final Map<TopComponent, JavaSource> TOP_COMPONENT_REGISTRY = Maps.newHashMap();
 
-    @SuppressWarnings("unchecked")
-    public static List<TopComponent> getOpenedJavaTopComponents(PropertyChangeEvent event) {
-        Collection<TopComponent> newComponents = (Collection<TopComponent>) event.getNewValue();
-        List<TopComponent> validatedOpened = new ArrayList<TopComponent>();
-        for (TopComponent topComponent : newComponents) {
-            JavaSource underlyingJavaFile = getUnderlyingJavaFile(topComponent);
-            if (underlyingJavaFile == null) {
-                LOGGER.debug("TopComponent does not seem to host a Java file: {}", topComponent);
-                continue;
-            }
-            if (TOP_COMPONENT_REGISTRY.keySet().contains(topComponent)) {
-                //not new
-                continue;
-            }
-            LOGGER.debug("Adding to list of new components: {}", topComponent);
-            validatedOpened.add(topComponent);
-        }
-        return validatedOpened;
+    public static boolean isKnownTopComponent(TopComponent component) {
+        return TOP_COMPONENT_REGISTRY.containsKey(component);
     }
 
     @SuppressWarnings("unchecked")
@@ -64,7 +47,7 @@ public class OpenJavaSourceRegistry {
         List<TopComponent> validatedClosed = new ArrayList<TopComponent>(oldComponents);
         validatedClosed.removeAll(newComponents);
         for (TopComponent topComponent : validatedClosed) {
-            if (!TOP_COMPONENT_REGISTRY.containsKey(topComponent)) {
+            if (!isKnownTopComponent(topComponent)) {
                 irrelevantTCs.add(topComponent);
             }
         }
@@ -89,12 +72,17 @@ public class OpenJavaSourceRegistry {
         TOP_COMPONENT_REGISTRY.remove(topComponent);
     }
 
+    public static void clearOldAnnotationsFor(FileObject fileObject) {
+        LOGGER.debug("Attempting to clean annotations for {}", fileObject);
+        JavaSource source = JavaSource.forFileObject(fileObject);
+    }
+
     public static void applyAnnotationsFor(FileObject fileObject) {
         JavaSource source = JavaSource.forFileObject(fileObject);
         List<SonarCheckstyleAnnotation> annotations = ANNOTATION_REGISTRY.get(source);
 
         PerFileAuditRunner auditRunner = processFile(fileObject);
-        Set lineSet = getLineCookieFromFileObject(fileObject).getLineSet();
+        Line.Set lineSet = getLineCookieFromFileObject(fileObject).getLineSet();
         for (LocalizedMessage localizedMessage : auditRunner.getErrorMessages()) {
             int targetIndex = localizedMessage.getLineNo() - 1;
             if (targetIndex < 0) {
@@ -105,11 +93,6 @@ public class OpenJavaSourceRegistry {
             annotation.attach(current);
             annotations.add(annotation);
         }
-    }
-
-    public static void clearOldAnnotationsFor(FileObject fileObject) {
-        LOGGER.debug("Attempting to clean annotations for {}", fileObject);
-        JavaSource source = JavaSource.forFileObject(fileObject);
     }
 
     private static void clearOldAnnotationsFor(JavaSource source) {
