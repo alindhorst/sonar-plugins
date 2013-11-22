@@ -41,15 +41,18 @@ public class TopComponentsWatch implements Runnable {
         public void propertyChange(PropertyChangeEvent evt) {
             EventMode eventMode = EventMode.findByEventNameValue(evt.getPropertyName());
             switch (eventMode) {
-                case ACTIVATED:
-                case OPEN:
-                    updateOpenedComponent(evt);
-                    break;
-                case UNSUPPORTED:
-                    LOGGER.debug("event mode not supported: {}", evt.getPropertyName());
-                    break;
-                default:
-                    throw new AssertionError();
+            case ACTIVATED:
+            case OPEN:
+                updateOpenedComponent(evt);
+                break;
+            case CLOSE:
+                closeComponent(evt);
+                break;
+            case UNSUPPORTED:
+                LOGGER.debug("event mode not supported: {}", evt.getPropertyName());
+                break;
+            default:
+                throw new AssertionError();
             }
         }
 
@@ -74,6 +77,7 @@ public class TopComponentsWatch implements Runnable {
 
         OPEN(TopComponent.Registry.PROP_TC_OPENED),
         ACTIVATED(TopComponent.Registry.PROP_ACTIVATED),
+        CLOSE(TopComponent.Registry.PROP_TC_CLOSED),
         UNSUPPORTED("");
         private final String eventName;
 

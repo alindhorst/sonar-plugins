@@ -57,11 +57,6 @@ public class OpenJavaSourceRegistry {
         TOP_COMPONENT_REGISTRY.remove(topComponent);
     }
 
-    public static void clearOldAnnotationsFor(FileObject fileObject) {
-        LOGGER.debug("Attempting to clean annotations for {}", fileObject);
-        clearOldAnnotationsFor(JavaSource.forFileObject(fileObject));
-    }
-
     public static void applyAnnotationsFor(FileObject fileObject) {
         JavaSource source = JavaSource.forFileObject(fileObject);
         List<SonarCheckstyleAnnotation> annotations = ANNOTATION_REGISTRY.get(source);
@@ -78,6 +73,12 @@ public class OpenJavaSourceRegistry {
             annotation.attach(current);
             annotations.add(annotation);
         }
+    }
+
+    public static void clearOldAnnotationsFor(FileObject fileObject) {
+        LOGGER.debug("Attempting to clean annotations for {}", fileObject);
+        JavaSource source = JavaSource.forFileObject(fileObject);
+        clearOldAnnotationsFor(source);
     }
 
     private static void clearOldAnnotationsFor(JavaSource source) {
