@@ -1,6 +1,5 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.util;
 
-import java.beans.PropertyChangeEvent;
 import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.api.project.Project;
@@ -12,10 +11,6 @@ import org.openide.loaders.DataObject;
 import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry;
-
-import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.isKnownTopComponent;
 
 /**
  * @author lindhrst (original author)
@@ -60,16 +55,7 @@ public final class SonarCheckstylePluginUtils {
         return null;
     }
 
-    public static TopComponent getOpenedJavaTopComponent(PropertyChangeEvent event) {
-        LOGGER.debug("Trying to get Java Top Component from Event");
-        TopComponent topComponent = (TopComponent) event.getNewValue();
-        boolean javaComponent = isJavaTopComponent(topComponent);
-        boolean knownComponent = OpenJavaSourceRegistry.isKnownTopComponent(topComponent);
-        LOGGER.debug("is {} a Java Component: {}; is known: {}", topComponent.getDisplayName(), javaComponent, knownComponent);
-        return isJavaTopComponent(topComponent) && !isKnownTopComponent(topComponent) ? topComponent : null;
-    }
-
-    private static boolean isJavaTopComponent(TopComponent component) {
+    public static boolean isJavaTopComponent(TopComponent component) {
         JavaSource file = getUnderlyingJavaFile(component);
         return file != null;
     }

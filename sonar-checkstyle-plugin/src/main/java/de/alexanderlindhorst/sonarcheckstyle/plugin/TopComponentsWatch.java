@@ -11,12 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
-import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.getClosedJavaTopComponents;
-import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getOpenedJavaTopComponent;
+
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
 
 /**
- * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in open windows.
+ * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
+ * open windows.
  */
 @OnShowing
 public class TopComponentsWatch implements Runnable {
@@ -41,31 +41,31 @@ public class TopComponentsWatch implements Runnable {
         public void propertyChange(PropertyChangeEvent evt) {
             EventMode eventMode = EventMode.findByEventNameValue(evt.getPropertyName());
             switch (eventMode) {
-            case ACTIVATED:
-            case OPEN:
-                updateOpenedComponent(evt);
-                break;
-            case UNSUPPORTED:
-                LOGGER.debug("event mode not supported: {}", evt.getPropertyName());
-                break;
-            default:
-                throw new AssertionError();
+                case ACTIVATED:
+                case OPEN:
+                    updateOpenedComponent(evt);
+                    break;
+                case UNSUPPORTED:
+                    LOGGER.debug("event mode not supported: {}", evt.getPropertyName());
+                    break;
+                default:
+                    throw new AssertionError();
             }
         }
 
         private void updateOpenedComponent(PropertyChangeEvent evt) {
-            TopComponent openedJavaTopComponent = getOpenedJavaTopComponent(evt);
-            if (openedJavaTopComponent==null) {
-                LOGGER.debug("No Java TopComponent found in {}",evt);
-                return ;
+            TopComponent openedJavaTopComponent = GUI_HELPER.getOpenedJavaTopComponent(evt);
+            if (openedJavaTopComponent == null) {
+                LOGGER.debug("No Java TopComponent found in {}", evt);
+                return;
             }
             GUI_HELPER.processAnnotationsFor(openedJavaTopComponent, getUnderlyingFile(openedJavaTopComponent));
         }
 
         private void closeComponent(PropertyChangeEvent event) {
-            List<TopComponent> closedTopComponents = getClosedJavaTopComponents(event);
+            List<TopComponent> closedTopComponents = GUI_HELPER.getClosedJavaTopComponents(event);
             for (TopComponent topComponent : closedTopComponents) {
-                GUI_HELPER.removeAnnotationsSupportFor(topComponent, getUnderlyingFile(topComponent));
+                GUI_HELPER.removeAnnotationsFor(topComponent, getUnderlyingFile(topComponent));
             }
         }
     }
@@ -75,7 +75,6 @@ public class TopComponentsWatch implements Runnable {
         OPEN(TopComponent.Registry.PROP_TC_OPENED),
         ACTIVATED(TopComponent.Registry.PROP_ACTIVATED),
         UNSUPPORTED("");
-
         private final String eventName;
 
         private EventMode(String eventName) {

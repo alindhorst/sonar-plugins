@@ -1,8 +1,6 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.gui;
 
-import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
+
 import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
 import de.alexanderlindhorst.sonarcheckstyleprocessor.PerFileAuditRunner;
 
@@ -39,22 +38,6 @@ public class OpenJavaSourceRegistry {
         return TOP_COMPONENT_REGISTRY.containsKey(component);
     }
 
-    @SuppressWarnings("unchecked")
-    public static List<TopComponent> getClosedJavaTopComponents(PropertyChangeEvent event) {
-        Collection<TopComponent> oldComponents = (Collection<TopComponent>) event.getOldValue();
-        Collection<TopComponent> newComponents = (Collection<TopComponent>) event.getNewValue();
-        List<TopComponent> irrelevantTCs = new ArrayList<TopComponent>();
-        List<TopComponent> validatedClosed = new ArrayList<TopComponent>(oldComponents);
-        validatedClosed.removeAll(newComponents);
-        for (TopComponent topComponent : validatedClosed) {
-            if (!isKnownTopComponent(topComponent)) {
-                irrelevantTCs.add(topComponent);
-            }
-        }
-        validatedClosed.removeAll(irrelevantTCs);
-        return validatedClosed;
-    }
-
     public static void markTopComponentOpened(TopComponent topComponent) {
         JavaSource source = getUnderlyingJavaFile(topComponent);
         List<SonarCheckstyleAnnotation> annotations = ANNOTATION_REGISTRY.get(source);
@@ -62,7 +45,9 @@ public class OpenJavaSourceRegistry {
             annotations = new ArrayList<SonarCheckstyleAnnotation>();
             ANNOTATION_REGISTRY.put(source, annotations);
         }
-        TOP_COMPONENT_REGISTRY.put(topComponent, source);
+        if (!TOP_COMPONENT_REGISTRY.keySet().contains(topComponent)) {
+            TOP_COMPONENT_REGISTRY.put(topComponent, source);
+        }
     }
 
     public static void markTopComponentClosed(TopComponent topComponent) {
@@ -74,7 +59,7 @@ public class OpenJavaSourceRegistry {
 
     public static void clearOldAnnotationsFor(FileObject fileObject) {
         LOGGER.debug("Attempting to clean annotations for {}", fileObject);
-        JavaSource source = JavaSource.forFileObject(fileObject);
+        clearOldAnnotationsFor(JavaSource.forFileObject(fileObject));
     }
 
     public static void applyAnnotationsFor(FileObject fileObject) {
