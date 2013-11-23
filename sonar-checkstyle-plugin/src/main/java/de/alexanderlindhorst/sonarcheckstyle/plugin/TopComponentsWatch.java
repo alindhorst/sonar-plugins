@@ -2,7 +2,6 @@ package de.alexanderlindhorst.sonarcheckstyle.plugin;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.List;
 
 import org.openide.windows.OnShowing;
 import org.openide.windows.TopComponent;
@@ -12,7 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
 
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.isKnownTopComponent;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.isJavaTopComponent;
 
 /**
  * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
@@ -41,34 +42,36 @@ public class TopComponentsWatch implements Runnable {
         public void propertyChange(PropertyChangeEvent evt) {
             EventMode eventMode = EventMode.findByEventNameValue(evt.getPropertyName());
             switch (eventMode) {
-            case ACTIVATED:
-            case OPEN:
-                updateOpenedComponent(evt);
-                break;
-            case CLOSE:
-                closeComponent(evt);
-                break;
-            case UNSUPPORTED:
-                LOGGER.debug("event mode not supported: {}", evt.getPropertyName());
-                break;
-            default:
-                throw new AssertionError();
+                case ACTIVATED:
+                case OPEN:
+                    updateOpenedComponent(evt);
+                    break;
+                case CLOSE:
+                    closeComponent(evt);
+                    break;
+                case UNSUPPORTED:
+                    LOGGER.debug("event mode not supported: {}", evt.getPropertyName());
+                    break;
+                default:
+                    throw new AssertionError();
             }
         }
 
         private void updateOpenedComponent(PropertyChangeEvent evt) {
-            TopComponent openedJavaTopComponent = GUI_HELPER.getOpenedJavaTopComponent(evt);
-            if (openedJavaTopComponent == null) {
-                LOGGER.debug("No Java TopComponent found in {}", evt);
-                return;
+            TopComponent topComponent = (TopComponent) evt.getNewValue();
+            if (isJavaTopComponent(topComponent) && !isKnownTopComponent(topComponent)) {
+                GUI_HELPER.processAnnotationsFor(topComponent, getUnderlyingFile(topComponent));
+            } else {
+                LOGGER.debug("Update not applicable to {}", topComponent.getDisplayName());
             }
-            GUI_HELPER.processAnnotationsFor(openedJavaTopComponent, getUnderlyingFile(openedJavaTopComponent));
         }
 
-        private void closeComponent(PropertyChangeEvent event) {
-            List<TopComponent> closedTopComponents = GUI_HELPER.getClosedJavaTopComponents(event);
-            for (TopComponent topComponent : closedTopComponents) {
+        private void closeComponent(PropertyChangeEvent evt) {
+            TopComponent topComponent = (TopComponent) evt.getNewValue();
+            if (isJavaTopComponent(topComponent) && isKnownTopComponent(topComponent)) {
                 GUI_HELPER.removeAnnotationsFor(topComponent, getUnderlyingFile(topComponent));
+            } else {
+                LOGGER.debug("Annotation removal not applicable to {}", topComponent.getDisplayName());
             }
         }
     }
