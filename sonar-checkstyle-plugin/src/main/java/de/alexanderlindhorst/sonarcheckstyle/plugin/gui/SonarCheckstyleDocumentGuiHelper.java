@@ -1,13 +1,10 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.gui;
 
-import org.openide.filesystems.FileObject;
 import org.openide.util.RequestProcessor;
 import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.applyAnnotationsFor;
-import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.clearOldAnnotationsFor;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.markTopComponentClosed;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.markTopComponentOpened;
 
@@ -28,19 +25,16 @@ public class SonarCheckstyleDocumentGuiHelper {
         return INSTANCE;
     }
 
-    public void processAnnotationsFor(final TopComponent topComponent, final FileObject fileObject) {
+    public void processAnnotationsFor(final TopComponent topComponent) {
         requestProcessor.post(new Runnable() {
             @Override
             public void run() {
                 markTopComponentOpened(topComponent);
-                clearOldAnnotationsFor(fileObject);
-                applyAnnotationsFor(fileObject);
             }
         });
     }
 
-    public void removeAnnotationsFor(TopComponent topComponent, FileObject object) {
-        clearOldAnnotationsFor(object);
+    public void removeAnnotationsFor(TopComponent topComponent) {
         markTopComponentClosed(topComponent);
     }
 }

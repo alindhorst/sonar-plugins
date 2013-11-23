@@ -23,6 +23,7 @@ import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
 import de.alexanderlindhorst.sonarcheckstyleprocessor.PerFileAuditRunner;
 
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingJavaFile;
 
 /**
@@ -48,6 +49,9 @@ public class OpenJavaSourceRegistry {
         if (!TOP_COMPONENT_REGISTRY.keySet().contains(topComponent)) {
             TOP_COMPONENT_REGISTRY.put(topComponent, source);
         }
+        FileObject underlyingFile = getUnderlyingFile(topComponent);
+        clearOldAnnotationsFor(source);
+        applyAnnotationsFor(underlyingFile);
     }
 
     public static void markTopComponentClosed(TopComponent topComponent) {

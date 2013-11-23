@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
 
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.isKnownTopComponent;
-import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.isJavaTopComponent;
 
 /**
@@ -60,7 +59,7 @@ public class TopComponentsWatch implements Runnable {
         private void updateOpenedComponent(PropertyChangeEvent evt) {
             TopComponent topComponent = (TopComponent) evt.getNewValue();
             if (isJavaTopComponent(topComponent) && !isKnownTopComponent(topComponent)) {
-                GUI_HELPER.processAnnotationsFor(topComponent, getUnderlyingFile(topComponent));
+                GUI_HELPER.processAnnotationsFor(topComponent);
             } else {
                 LOGGER.debug("Update not applicable to {}", topComponent.getDisplayName());
             }
@@ -69,7 +68,7 @@ public class TopComponentsWatch implements Runnable {
         private void closeComponent(PropertyChangeEvent evt) {
             TopComponent topComponent = (TopComponent) evt.getNewValue();
             if (isJavaTopComponent(topComponent) && isKnownTopComponent(topComponent)) {
-                GUI_HELPER.removeAnnotationsFor(topComponent, getUnderlyingFile(topComponent));
+                GUI_HELPER.removeAnnotationsFor(topComponent);
             } else {
                 LOGGER.debug("Annotation removal not applicable to {}", topComponent.getDisplayName());
             }
