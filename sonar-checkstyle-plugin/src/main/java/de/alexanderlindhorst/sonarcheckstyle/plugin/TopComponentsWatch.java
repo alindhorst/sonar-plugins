@@ -9,9 +9,11 @@ import org.openide.windows.WindowManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.FileWatch;
 import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
 
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.isKnownTopComponent;
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.isJavaTopComponent;
 
 /**
@@ -24,6 +26,7 @@ public class TopComponentsWatch implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TopComponentsWatch.class);
     private static final TopComponentPropertyChangeListener LISTENER = new TopComponentPropertyChangeListener();
     private static final SonarCheckstyleDocumentGuiHelper GUI_HELPER = SonarCheckstyleDocumentGuiHelper.getDefault();
+    private static final FileWatch FILE_WATCH = new FileWatch();
 
     /**
      * Hooks up the listener with the registry in a different thread
@@ -43,10 +46,10 @@ public class TopComponentsWatch implements Runnable {
             switch (eventMode) {
                 case ACTIVATED:
                 case OPEN:
-                    updateOpenedComponent(evt);
+                    hookUpComponent(evt);
                     break;
                 case CLOSE:
-                    closeComponent(evt);
+                    releaseComponent(evt);
                     break;
                 case UNSUPPORTED:
                     LOGGER.debug("event mode not supported: {}", evt.getPropertyName());
@@ -56,21 +59,25 @@ public class TopComponentsWatch implements Runnable {
             }
         }
 
-        private void updateOpenedComponent(PropertyChangeEvent evt) {
+        private void hookUpComponent(PropertyChangeEvent evt) {
+            LOGGER.debug("hookUpComponent called for {}", ((TopComponent) evt.getNewValue()).getDisplayName());
             TopComponent topComponent = (TopComponent) evt.getNewValue();
             if (isJavaTopComponent(topComponent) && !isKnownTopComponent(topComponent)) {
+                getUnderlyingFile(topComponent).addFileChangeListener(FILE_WATCH);
                 GUI_HELPER.processAnnotationsFor(topComponent);
             } else {
-                LOGGER.debug("Update not applicable to {}", topComponent.getDisplayName());
+                LOGGER.debug("Hook up not applicable to {}", topComponent.getDisplayName());
             }
         }
 
-        private void closeComponent(PropertyChangeEvent evt) {
+        private void releaseComponent(PropertyChangeEvent evt) {
+            LOGGER.debug("releaseComponent called for {}", ((TopComponent) evt.getNewValue()).getDisplayName());
             TopComponent topComponent = (TopComponent) evt.getNewValue();
             if (isJavaTopComponent(topComponent) && isKnownTopComponent(topComponent)) {
+                getUnderlyingFile(topComponent).removeFileChangeListener(FILE_WATCH);
                 GUI_HELPER.removeAnnotationsFor(topComponent);
             } else {
-                LOGGER.debug("Annotation removal not applicable to {}", topComponent.getDisplayName());
+                LOGGER.debug("releaseComponent not applicable to {}", topComponent.getDisplayName());
             }
         }
     }

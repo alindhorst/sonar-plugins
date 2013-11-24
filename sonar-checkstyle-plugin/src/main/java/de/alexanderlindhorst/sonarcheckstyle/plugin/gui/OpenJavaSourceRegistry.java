@@ -39,6 +39,10 @@ public class OpenJavaSourceRegistry {
         return TOP_COMPONENT_REGISTRY.containsKey(component);
     }
 
+    public static boolean isKnownJavaSource(JavaSource source) {
+        return TOP_COMPONENT_REGISTRY.values().contains(source) && ANNOTATION_REGISTRY.containsKey(source);
+    }
+
     public static void markTopComponentOpened(TopComponent topComponent) {
         JavaSource source = getUnderlyingJavaFile(topComponent);
         List<SonarCheckstyleAnnotation> annotations = ANNOTATION_REGISTRY.get(source);

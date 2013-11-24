@@ -1,5 +1,7 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.gui;
 
+import org.netbeans.api.java.source.JavaSource;
+import org.openide.filesystems.FileObject;
 import org.openide.util.RequestProcessor;
 import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
@@ -30,6 +32,21 @@ public class SonarCheckstyleDocumentGuiHelper {
             @Override
             public void run() {
                 markTopComponentOpened(topComponent);
+            }
+        });
+    }
+
+    public void processAnnotationsFor(final FileObject fileObject) {
+        LOGGER.debug("Will process change in file asynchronously for {}", fileObject.getName());
+        requestProcessor.post(new Runnable() {
+            @Override
+            public void run() {
+                JavaSource source = JavaSource.forFileObject(fileObject);
+                if (!OpenJavaSourceRegistry.isKnownJavaSource(source)) {
+                    return;
+                }
+                OpenJavaSourceRegistry.clearOldAnnotationsFor(fileObject);
+                OpenJavaSourceRegistry.applyAnnotationsFor(fileObject);
             }
         });
     }
