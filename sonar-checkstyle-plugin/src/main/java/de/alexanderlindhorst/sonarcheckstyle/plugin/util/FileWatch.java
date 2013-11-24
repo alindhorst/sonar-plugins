@@ -1,4 +1,4 @@
-package de.alexanderlindhorst.sonarcheckstyle.plugin.gui;
+package de.alexanderlindhorst.sonarcheckstyle.plugin.util;
 
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
@@ -8,13 +8,14 @@ import org.openide.filesystems.FileRenameEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.processAnnotationsFor;
+
 /**
  * @author lindhrst (original author)
  */
 public class FileWatch implements FileChangeListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileChangeListener.class);
-    private static final SonarCheckstyleDocumentGuiHelper GUI_HELPER = SonarCheckstyleDocumentGuiHelper.getDefault();
 
     @Override
     public void fileFolderCreated(FileEvent fe) {
@@ -30,7 +31,7 @@ public class FileWatch implements FileChangeListener {
     public void fileChanged(FileEvent fe) {
         LOGGER.debug("fileChanged {}", fe.getFile().getPath());
         FileObject file = fe.getFile();
-        GUI_HELPER.processAnnotationsFor(file);
+        processAnnotationsFor(file);
     }
 
     @Override

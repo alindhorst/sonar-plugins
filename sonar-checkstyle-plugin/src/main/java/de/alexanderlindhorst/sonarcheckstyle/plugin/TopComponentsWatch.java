@@ -9,12 +9,13 @@ import org.openide.windows.WindowManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.FileWatch;
-import de.alexanderlindhorst.sonarcheckstyle.plugin.gui.SonarCheckstyleDocumentGuiHelper;
+import de.alexanderlindhorst.sonarcheckstyle.plugin.util.FileWatch;
 
-import static de.alexanderlindhorst.sonarcheckstyle.plugin.gui.OpenJavaSourceRegistry.isKnownTopComponent;
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.OpenJavaSourceRegistry.isKnownTopComponent;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.isJavaTopComponent;
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.processAnnotationsFor;
+import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.removeAnnotationsFor;
 
 /**
  * Hooks itself up with WindowManager upon module start and registers listeners. Thus, will be notified of any change in
@@ -25,7 +26,6 @@ public class TopComponentsWatch implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopComponentsWatch.class);
     private static final TopComponentPropertyChangeListener LISTENER = new TopComponentPropertyChangeListener();
-    private static final SonarCheckstyleDocumentGuiHelper GUI_HELPER = SonarCheckstyleDocumentGuiHelper.getDefault();
     private static final FileWatch FILE_WATCH = new FileWatch();
 
     /**
@@ -64,7 +64,7 @@ public class TopComponentsWatch implements Runnable {
             TopComponent topComponent = (TopComponent) evt.getNewValue();
             if (isJavaTopComponent(topComponent) && !isKnownTopComponent(topComponent)) {
                 getUnderlyingFile(topComponent).addFileChangeListener(FILE_WATCH);
-                GUI_HELPER.processAnnotationsFor(topComponent);
+                processAnnotationsFor(topComponent);
             } else {
                 LOGGER.debug("Hook up not applicable to {}", topComponent.getDisplayName());
             }
@@ -75,7 +75,7 @@ public class TopComponentsWatch implements Runnable {
             TopComponent topComponent = (TopComponent) evt.getNewValue();
             if (isJavaTopComponent(topComponent) && isKnownTopComponent(topComponent)) {
                 getUnderlyingFile(topComponent).removeFileChangeListener(FILE_WATCH);
-                GUI_HELPER.removeAnnotationsFor(topComponent);
+                removeAnnotationsFor(topComponent);
             } else {
                 LOGGER.debug("releaseComponent not applicable to {}", topComponent.getDisplayName());
             }
