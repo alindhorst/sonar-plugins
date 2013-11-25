@@ -2,4 +2,5 @@ Manifest-Version: 1.0
 OpenIDE-Module: de.alexanderlindhorst.sonarcheckstyle.plugin
 OpenIDE-Module-Layer: de/alexanderlindhorst/sonarcheckstyle/plugin/layer.xml
 OpenIDE-Module-Localizing-Bundle: de/alexanderlindhorst/sonarcheckstyle/plugin/Bundle.properties
-OpenIDE-Module-Specification-Version: 1.10
+OpenIDE-Module-Display-Category: sonar-plugins
+OpenIDE-Module-Specification-Version: 1.12
