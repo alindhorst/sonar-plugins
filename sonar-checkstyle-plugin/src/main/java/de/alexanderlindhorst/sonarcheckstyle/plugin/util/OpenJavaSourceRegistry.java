@@ -1,5 +1,6 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.util;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
+import com.puppycrawl.tools.checkstyle.ConfigurationLoader;
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
+import com.puppycrawl.tools.checkstyle.api.Configuration;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 
 import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
@@ -104,7 +107,10 @@ public class OpenJavaSourceRegistry {
     private static PerFileAuditRunner processFile(FileObject fileObject) {
         PerFileAuditRunner auditRunner = null;
         try {
-            auditRunner = new PerFileAuditRunner(null, Utilities.toFile(fileObject.toURI()));
+            URL configUrl = SonarCheckstylePluginUtils.loadConfigUrl();
+            Configuration config = ConfigurationLoader.loadConfiguration(configUrl == null ? null : configUrl.toExternalForm(), null);
+            LOGGER.debug("processing file using configuration {} ({})", configUrl, config);
+            auditRunner = new PerFileAuditRunner(config, Utilities.toFile(fileObject.toURI()));
         } catch (CheckstyleException checkstyleException) {
             LOGGER.error("Couldn't perform checkstyle audit", checkstyleException);
             Exceptions.attachMessage(checkstyleException, checkstyleException.getLocalizedMessage());

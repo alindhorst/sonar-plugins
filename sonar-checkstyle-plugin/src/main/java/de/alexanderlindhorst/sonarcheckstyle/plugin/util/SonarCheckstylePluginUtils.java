@@ -1,5 +1,9 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.util;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.util.prefs.Preferences;
 import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.api.project.Project;
@@ -8,6 +12,8 @@ import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
+import org.openide.util.Exceptions;
+import org.openide.util.NbPreferences;
 import org.openide.util.RequestProcessor;
 import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
@@ -24,6 +30,7 @@ public final class SonarCheckstylePluginUtils {
     public static final String JAVA_MIMETYPE = JavaProjectConstants.SOURCES_TYPE_JAVA;
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstylePluginUtils.class);
     private static final RequestProcessor requestProcessor = new RequestProcessor("sonar plugins request processor", 5);
+    private static final String CONFIG_PROPERTY = "config_url";
 
     private SonarCheckstylePluginUtils() {
         //utils class
@@ -91,5 +98,36 @@ public final class SonarCheckstylePluginUtils {
 
     public static void removeAnnotationsFor(TopComponent topComponent) {
         markTopComponentClosed(topComponent);
+    }
+
+    public static void storeConfigURL(String url) {
+        Preferences preferences = NbPreferences.forModule(SonarCheckstylePluginUtils.class);
+        if (preferences != null) {
+            URL configUrl;
+            try {
+                configUrl = URI.create(url).toURL();
+            } catch (MalformedURLException ex) {
+                Exceptions.printStackTrace(ex);
+                return;
+            }
+            if (configUrl != null) {
+                preferences.put(CONFIG_PROPERTY, configUrl.toExternalForm());
+            }
+        }
+    }
+
+    public static URL loadConfigUrl() {
+        Preferences preferences = NbPreferences.forModule(SonarCheckstylePluginUtils.class);
+        if (preferences != null) {
+            String configURL = preferences.get(CONFIG_PROPERTY, null);
+            if (configURL != null && !configURL.isEmpty()) {
+                try {
+                    return URI.create(configURL).toURL();
+                } catch (MalformedURLException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+        return null;
     }
 }

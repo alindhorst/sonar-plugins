@@ -1,14 +1,11 @@
 package de.alexanderlindhorst.sonar.checkstyle.plugin.options;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
-import java.util.prefs.Preferences;
 
 import org.openide.util.Exceptions;
-import org.openide.util.NbPreferences;
-
 import de.alexanderlindhorst.sonar.checkstyle.plugin.options.gui.SonarCheckstylePluginConfigPane;
+import de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils;
 
 final class SonarCheckstylePluginPanel extends javax.swing.JPanel {
 
@@ -35,51 +32,19 @@ final class SonarCheckstylePluginPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
-        // TODO read settings and initialize GUI
-        // Example:        
-        // someCheckBox.setSelected(Preferences.userNodeForPackage(SonarCheckstylePluginPanel.class).getBoolean("someFlag", false));
-        // or for org.openide.util with API spec. version >= 7.4:
-        // someCheckBox.setSelected(NbPreferences.forModule(SonarCheckstylePluginPanel.class).getBoolean("someFlag", false));
-        // or:
-        // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
-        Preferences preferences = NbPreferences.forModule(SonarCheckstylePluginPanel.class);
-        if (preferences != null) {
-            String configURL = preferences.get("config_url", null);
-            if (configURL != null && !configURL.isEmpty()) {
-                try {
-                    configPane.setConfigUrl(URI.create(configURL).toURL());
-                } catch (MalformedURLException ex) {
-                    Exceptions.printStackTrace(ex);
-                }
-            }
-        }
+        URL loadConfigUrl = SonarCheckstylePluginUtils.loadConfigUrl();
+        configPane.setConfigUrl(loadConfigUrl);
     }
 
     void store() {
-        // TODO store modified settings
-        // Example:
-        // Preferences.userNodeForPackage(SonarCheckstylePluginPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
-        // or for org.openide.util with API spec. version >= 7.4:
-        // NbPreferences.forModule(SonarCheckstylePluginPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
-        // or:
-        // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
-        Preferences preferences = NbPreferences.forModule(SonarCheckstylePluginPanel.class);
-        if (preferences != null) {
-            URL configUrl;
-            try {
-                configUrl = configPane.getConfigUrl();
-            } catch (MalformedURLException ex) {
-                Exceptions.printStackTrace(ex);
-                return;
-            }
-            if (configUrl != null) {
-                preferences.put("config_url", configUrl.toExternalForm());
-            }
+        try {
+            SonarCheckstylePluginUtils.storeConfigURL(configPane.getConfigUrl().toExternalForm());
+        } catch (MalformedURLException ex) {
+            Exceptions.printStackTrace(ex);
         }
     }
 
     boolean valid() {
-        // TODO check whether form is consistent and complete
         return true;
     }
 
