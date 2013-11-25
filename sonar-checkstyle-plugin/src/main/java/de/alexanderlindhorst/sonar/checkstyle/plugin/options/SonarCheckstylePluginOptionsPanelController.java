@@ -8,6 +8,11 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 
 import javax.swing.JComponent;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @OptionsPanelController.SubRegistration(
         location = "Advanced",
@@ -18,33 +23,46 @@ import javax.swing.JComponent;
     "AdvancedOption_Keywords_SonarCheckstylePlugin=Sonar Checkstyle"})
 public final class SonarCheckstylePluginOptionsPanelController extends OptionsPanelController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstylePluginOptionsPanelController.class);
     private SonarCheckstylePluginPanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
 
     @Override
     public void update() {
+        LOGGER.debug("update");
         getPanel().load();
         changed = false;
+        getPanel().getConfigPane().addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                changed();
+            }
+        });
     }
 
     @Override
     public void applyChanges() {
+        LOGGER.debug("applyChanges");
         getPanel().store();
         changed = false;
     }
 
     @Override
     public void cancel() {
+        LOGGER.debug("cancel");
     }
 
     @Override
     public boolean isValid() {
+        LOGGER.debug("isValid");
         return getPanel().valid();
     }
 
     @Override
     public boolean isChanged() {
+        LOGGER.debug("isChanged");
         return changed;
     }
 
@@ -76,6 +94,7 @@ public final class SonarCheckstylePluginOptionsPanelController extends OptionsPa
     }
 
     void changed() {
+        LOGGER.debug("changed");
         if (!changed) {
             changed = true;
             pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, false, true);
