@@ -9,5 +9,5 @@
       glyph="nbresloc:/de/alexanderlindhorst/sonarcheckstyle/plugin/icons/checkstyle.png"
       type="line"   
       severity="warning"
-      custom_sidebar_color="#dddd00"
+      custom_sidebar_color="#dd00dd"
       />
