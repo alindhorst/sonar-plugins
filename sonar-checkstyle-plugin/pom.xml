@@ -15,7 +15,7 @@
     <packaging>nbm</packaging>
 
     <name>Sonar Checkstyle Netbeans Plugin</name>
-
+    
     <dependencies>
         <dependency>
             <groupId>org.netbeans.api</groupId>
@@ -122,9 +122,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <verifyRuntime>true</verifyRuntime>
-                    <!--
-                    <additionalArguments>-J-Xdebug -J-Xnoagent -J-Xrunjdwp:transport=dt_socket,suspend=n,server=n,address=8888</additionalArguments>
-                    -->
+                    <additionalArguments>-J-Xdebug -J-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5858</additionalArguments>
                 </configuration>
             </plugin>
 
