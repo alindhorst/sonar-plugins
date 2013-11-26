@@ -39,7 +39,7 @@ final class SonarCheckstylePluginPanel extends javax.swing.JPanel {
     void store() {
         try {
             URL configUrl = configPane.getConfigUrl();
-            SonarCheckstylePluginUtils.storeConfigURL(configUrl == null ? null : configUrl.toExternalForm());
+            SonarCheckstylePluginUtils.storeConfig(configUrl == null ? null : configUrl.toExternalForm());
         } catch (MalformedURLException ex) {
             Exceptions.printStackTrace(ex);
         }
