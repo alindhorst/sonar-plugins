@@ -56,7 +56,7 @@ public class SonarCheckstylePluginConfigPane extends javax.swing.JPanel {
 
     /* properties */
     public void setConfigUrl(URL url) {
-        urlField.setText(url.toExternalForm());
+        urlField.setText(url == null ? null : url.toExternalForm());
     }
 
     public URL getConfigUrl() throws MalformedURLException {

@@ -60,8 +60,11 @@ public class TopComponentsWatch implements Runnable {
         }
 
         private void hookUpComponent(PropertyChangeEvent evt) {
-            LOGGER.debug("hookUpComponent called for {}", ((TopComponent) evt.getNewValue()).getDisplayName());
+            if (evt.getNewValue() == null) {
+                return;
+            }
             TopComponent topComponent = (TopComponent) evt.getNewValue();
+            LOGGER.debug("hookUpComponent called for {}", ((TopComponent) evt.getNewValue()).getDisplayName());
             if (isJavaTopComponent(topComponent) && !isKnownTopComponent(topComponent)) {
                 getUnderlyingFile(topComponent).addFileChangeListener(FILE_WATCH);
                 processAnnotationsFor(topComponent);

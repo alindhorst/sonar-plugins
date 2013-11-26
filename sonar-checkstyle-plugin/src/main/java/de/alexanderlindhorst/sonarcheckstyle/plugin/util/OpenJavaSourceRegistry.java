@@ -1,5 +1,6 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.util;
 
+import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.InputSource;
 
 import com.google.common.collect.Maps;
 import com.puppycrawl.tools.checkstyle.ConfigurationLoader;
@@ -116,13 +118,13 @@ public class OpenJavaSourceRegistry {
             if (configContent == null) {
                 auditRunner = new PerFileAuditRunner(null, Utilities.toFile(fileObject.toURI()));
             } else {
-                Configuration config = ConfigurationLoader.loadConfiguration(configContent, null);
+                InputSource inputSource = new InputSource(new StringReader(configContent));
+                Configuration config = ConfigurationLoader.loadConfiguration(inputSource, null, true);
                 LOGGER.debug("processing file using configuration {} ({})", configUrl, config);
                 auditRunner = new PerFileAuditRunner(config, Utilities.toFile(fileObject.toURI()));
             }
         } catch (CheckstyleException checkstyleException) {
-            LOGGER.error("Couldn't perform checkstyle audit", checkstyleException);
-            Exceptions.attachMessage(checkstyleException, checkstyleException.getLocalizedMessage());
+            Exceptions.printStackTrace(checkstyleException);
             return auditRunner;
         }
         auditRunner.run();
