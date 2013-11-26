@@ -18,12 +18,12 @@ public class SonarCheckstyleAnnotation extends Annotation {
         addErrorMessage(errorMessage);
     }
 
-    public void addErrorMessage(LocalizedMessage errorMessage) {
+    public final void addErrorMessage(LocalizedMessage errorMessage) {
         errorMessages.add(errorMessage);
     }
 
     @Override
-    public String getAnnotationType() {
+    public final String getAnnotationType() {
         return "de-alexanderlindhorst-sonarcheckstyle-plugin-sonarcheckstyleannotation";
     }
 

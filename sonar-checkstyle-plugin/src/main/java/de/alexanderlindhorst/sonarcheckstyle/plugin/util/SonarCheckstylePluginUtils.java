@@ -32,7 +32,7 @@ public final class SonarCheckstylePluginUtils {
 
     public static final String JAVA_MIMETYPE = JavaProjectConstants.SOURCES_TYPE_JAVA;
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstylePluginUtils.class);
-    private static final RequestProcessor requestProcessor = new RequestProcessor("sonar plugins request processor", 5);
+    private static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor("sonar plugins request processor", 5);
     private static final String CONFIG_PROPERTY = "config_url";
     private static final String CONFIG_CONTENT = "config_content";
     private static final String CONFIG_MODIFICATION_TIME = "config_modification";
@@ -78,7 +78,7 @@ public final class SonarCheckstylePluginUtils {
     }
 
     public static void processAnnotationsFor(final TopComponent topComponent) {
-        requestProcessor.post(new Runnable() {
+        REQUEST_PROCESSOR.post(new Runnable() {
             @Override
             public void run() {
                 markTopComponentOpened(topComponent);
@@ -88,7 +88,7 @@ public final class SonarCheckstylePluginUtils {
 
     public static void processAnnotationsFor(final FileObject fileObject) {
         LOGGER.debug("Will process change in file asynchronously for {}", fileObject.getName());
-        requestProcessor.post(new Runnable() {
+        REQUEST_PROCESSOR.post(new Runnable() {
             @Override
             public void run() {
                 JavaSource source = JavaSource.forFileObject(fileObject);

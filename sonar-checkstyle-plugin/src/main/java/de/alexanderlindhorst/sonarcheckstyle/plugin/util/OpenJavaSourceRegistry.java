@@ -34,11 +34,15 @@ import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstyleP
 /**
  * @author lindhrst (original author)
  */
-public class OpenJavaSourceRegistry {
+public final class OpenJavaSourceRegistry {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenJavaSourceRegistry.class);
     private static final Map<JavaSource, List<SonarCheckstyleAnnotation>> ANNOTATION_REGISTRY = Maps.newHashMap();
     private static final Map<TopComponent, JavaSource> TOP_COMPONENT_REGISTRY = Maps.newHashMap();
+
+    private OpenJavaSourceRegistry() {
+        //utility class
+    }
 
     public static boolean isKnownTopComponent(TopComponent component) {
         return TOP_COMPONENT_REGISTRY.containsKey(component);
