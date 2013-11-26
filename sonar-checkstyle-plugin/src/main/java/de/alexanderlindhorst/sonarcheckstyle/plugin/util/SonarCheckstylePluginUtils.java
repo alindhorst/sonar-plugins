@@ -107,14 +107,19 @@ public final class SonarCheckstylePluginUtils {
     public static void storeConfigURL(String url) {
         Preferences preferences = NbPreferences.forModule(SonarCheckstylePluginUtils.class);
         if (preferences != null) {
-            URL configUrl;
-            try {
-                configUrl = URI.create(url).toURL();
-                String configurationContent = downloadConfigurationFrom(configUrl);
-                preferences.put(CONFIG_PROPERTY, url);
-                preferences.put(CONFIG_CONTENT, configurationContent);
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
+            if (url == null || url.isEmpty()) {
+                preferences.put(CONFIG_PROPERTY, "");
+                preferences.put(CONFIG_CONTENT, "");
+            } else {
+                URL configUrl;
+                try {
+                    configUrl = URI.create(url).toURL();
+                    String configurationContent = downloadConfigurationFrom(configUrl);
+                    preferences.put(CONFIG_PROPERTY, url);
+                    preferences.put(CONFIG_CONTENT, configurationContent);
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
             }
         }
     }
@@ -139,7 +144,6 @@ public final class SonarCheckstylePluginUtils {
         String config = null;
         if (preferences != null) {
             config = preferences.get(CONFIG_CONTENT, null);
-
         }
         return config;
     }
