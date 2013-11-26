@@ -1,5 +1,7 @@
 package de.alexanderlindhorst.sonarcheckstyle.plugin.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -19,6 +21,7 @@ import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.puppycrawl.tools.checkstyle.ConfigurationLoader;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.OpenJavaSourceRegistry.markTopComponentClosed;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.OpenJavaSourceRegistry.markTopComponentOpened;
 
@@ -31,6 +34,7 @@ public final class SonarCheckstylePluginUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstylePluginUtils.class);
     private static final RequestProcessor requestProcessor = new RequestProcessor("sonar plugins request processor", 5);
     private static final String CONFIG_PROPERTY = "config_url";
+    private static final String CONFIG_CONTENT = "config_content";
 
     private SonarCheckstylePluginUtils() {
         //utils class
@@ -106,12 +110,11 @@ public final class SonarCheckstylePluginUtils {
             URL configUrl;
             try {
                 configUrl = URI.create(url).toURL();
-            } catch (MalformedURLException ex) {
+                String configurationContent = downloadConfigurationFrom(configUrl);
+                preferences.put(CONFIG_PROPERTY, url);
+                preferences.put(CONFIG_CONTENT, configurationContent);
+            } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
-                return;
-            }
-            if (configUrl != null) {
-                preferences.put(CONFIG_PROPERTY, configUrl.toExternalForm());
             }
         }
     }
@@ -129,5 +132,29 @@ public final class SonarCheckstylePluginUtils {
             }
         }
         return null;
+    }
+    
+    public static String loadConfigurationContent() {
+        Preferences preferences = NbPreferences.forModule(SonarCheckstylePluginUtils.class);
+        String config = null;
+        if (preferences != null) {
+            config = preferences.get(CONFIG_CONTENT, null);
+
+        }
+        return config;
+    }
+    
+    private static String downloadConfigurationFrom(URL url) throws IOException {
+        InputStream openStream = url.openStream();
+        StringBuilder builder=new StringBuilder();
+        int value;
+        do {
+            value=openStream.read();
+            if (value<0) {
+                break;
+            }
+            builder.append((char)value);
+        } while(value>=0);
+        return builder.toString();
     }
 }

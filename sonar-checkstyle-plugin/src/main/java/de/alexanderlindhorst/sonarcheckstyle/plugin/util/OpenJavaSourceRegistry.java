@@ -73,6 +73,9 @@ public class OpenJavaSourceRegistry {
         List<SonarCheckstyleAnnotation> annotations = ANNOTATION_REGISTRY.get(source);
 
         PerFileAuditRunner auditRunner = processFile(fileObject);
+        if (auditRunner == null) {
+            return;
+        }
         Line.Set lineSet = getLineCookieFromFileObject(fileObject).getLineSet();
         for (LocalizedMessage localizedMessage : auditRunner.getErrorMessages()) {
             int targetIndex = localizedMessage.getLineNo() - 1;
@@ -108,9 +111,15 @@ public class OpenJavaSourceRegistry {
         PerFileAuditRunner auditRunner = null;
         try {
             URL configUrl = SonarCheckstylePluginUtils.loadConfigUrl();
-            Configuration config = ConfigurationLoader.loadConfiguration(configUrl == null ? null : configUrl.toExternalForm(), null);
-            LOGGER.debug("processing file using configuration {} ({})", configUrl, config);
-            auditRunner = new PerFileAuditRunner(config, Utilities.toFile(fileObject.toURI()));
+            String configContent = SonarCheckstylePluginUtils.loadConfigurationContent();
+            LOGGER.debug("retrieved configuration: {}", configContent);
+            if (configContent == null) {
+                auditRunner = new PerFileAuditRunner(null, Utilities.toFile(fileObject.toURI()));
+            } else {
+                Configuration config = ConfigurationLoader.loadConfiguration(configContent, null);
+                LOGGER.debug("processing file using configuration {} ({})", configUrl, config);
+                auditRunner = new PerFileAuditRunner(config, Utilities.toFile(fileObject.toURI()));
+            }
         } catch (CheckstyleException checkstyleException) {
             LOGGER.error("Couldn't perform checkstyle audit", checkstyleException);
             Exceptions.attachMessage(checkstyleException, checkstyleException.getLocalizedMessage());
