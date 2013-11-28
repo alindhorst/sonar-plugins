@@ -36,6 +36,7 @@
     <modules>
         <module>sonar-checkstyle-plugin</module>
         <module>sonar-checkstyle-processor</module>
+        <module>sonar-pmd-plugin</module>
     </modules>
     
     <dependencies> 
@@ -79,6 +80,11 @@
                 <groupId>com.puppycrawl.tools</groupId>
                 <artifactId>checkstyle</artifactId>
                 <version>5.6</version>
+            </dependency>
+            <dependency>
+                <groupId>pmd</groupId>
+                <artifactId>pmd</artifactId>
+                <version>4.3</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
