@@ -26,7 +26,7 @@ import com.puppycrawl.tools.checkstyle.api.Configuration;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 
 import de.alexanderlindhorst.sonarcheckstyle.plugin.annotation.SonarCheckstyleAnnotation;
-import de.alexanderlindhorst.sonarcheckstyleprocessor.PerFileAuditRunner;
+import de.alexanderlindhorst.sonarcheckstyleprocessor.PerFileCheckstyleAuditRunner;
 
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingFile;
 import static de.alexanderlindhorst.sonarcheckstyle.plugin.util.SonarCheckstylePluginUtils.getUnderlyingJavaFile;
@@ -78,7 +78,7 @@ public final class OpenJavaSourceRegistry {
         JavaSource source = JavaSource.forFileObject(fileObject);
         List<SonarCheckstyleAnnotation> annotations = ANNOTATION_REGISTRY.get(source);
 
-        PerFileAuditRunner auditRunner = processFile(fileObject);
+        PerFileCheckstyleAuditRunner auditRunner = processFile(fileObject);
         if (auditRunner == null) {
             return;
         }
@@ -113,19 +113,19 @@ public final class OpenJavaSourceRegistry {
         registeredAnnotations.clear();
     }
 
-    private static PerFileAuditRunner processFile(FileObject fileObject) {
-        PerFileAuditRunner auditRunner = null;
+    private static PerFileCheckstyleAuditRunner processFile(FileObject fileObject) {
+        PerFileCheckstyleAuditRunner auditRunner = null;
         try {
             URL configUrl = SonarCheckstylePluginUtils.loadConfigUrl();
             String configContent = SonarCheckstylePluginUtils.loadConfigurationContent();
             LOGGER.debug("retrieved configuration: {}", configContent);
             if (configContent == null) {
-                auditRunner = new PerFileAuditRunner(null, Utilities.toFile(fileObject.toURI()));
+                auditRunner = new PerFileCheckstyleAuditRunner(null, Utilities.toFile(fileObject.toURI()));
             } else {
                 InputSource inputSource = new InputSource(new StringReader(configContent));
                 Configuration config = ConfigurationLoader.loadConfiguration(inputSource, null, true);
                 LOGGER.debug("processing file using configuration {} ({})", configUrl, config);
-                auditRunner = new PerFileAuditRunner(config, Utilities.toFile(fileObject.toURI()));
+                auditRunner = new PerFileCheckstyleAuditRunner(config, Utilities.toFile(fileObject.toURI()));
             }
         } catch (CheckstyleException checkstyleException) {
             Exceptions.printStackTrace(checkstyleException);

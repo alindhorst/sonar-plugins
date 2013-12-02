@@ -17,21 +17,21 @@ import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 /**
  * @author lindhrst (original author)
  */
-public class PerFileAuditRunner implements Runnable {
+public class PerFileCheckstyleAuditRunner implements Runnable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PerFileAuditRunner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PerFileCheckstyleAuditRunner.class);
     private final List<File> targetFiles;
     private final Checker checker;
-    private final ResultProvider resultProvider;
+    private final CheckstyleResultProvider resultProvider;
 
-    public PerFileAuditRunner(Configuration configuration, File targetFile) throws CheckstyleException {
+    public PerFileCheckstyleAuditRunner(Configuration configuration, File targetFile) throws CheckstyleException {
         Configuration localConfig = configuration;
         if (localConfig == null) {
             LOGGER.warn("No CheckStyle configuration given, will default to Sun Checks only");
             localConfig = loadSunChecksConfiguration();
         }
         this.targetFiles = Collections.singletonList(targetFile);
-        this.resultProvider = new ResultProvider();
+        this.resultProvider = new CheckstyleResultProvider();
         this.checker = new Checker();
         checker.setModuleClassLoader(Checker.class.getClassLoader());
         checker.configure(localConfig);
@@ -56,7 +56,7 @@ public class PerFileAuditRunner implements Runnable {
     }
 
     private static Configuration loadSunChecksConfiguration() throws CheckstyleException {
-        URL resource = PerFileAuditRunner.class.getResource(
+        URL resource = PerFileCheckstyleAuditRunner.class.getResource(
                 "/de/alexanderlindhorst/sonarcheckstyleprocessor/config/sun_checks.xml");
         return ConfigurationLoader.loadConfiguration(resource.toExternalForm(), null);
     }

@@ -13,9 +13,9 @@ import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 /**
  * @author lindhrst (original author)
  */
-class ResultProvider implements AuditListener {
+class CheckstyleResultProvider implements AuditListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResultProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CheckstyleResultProvider.class);
     private List<LocalizedMessage> errorMessages = Lists.newArrayList();
     private List<Throwable> auditExceptions = Lists.newArrayList();
 

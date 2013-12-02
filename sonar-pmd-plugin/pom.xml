@@ -111,6 +111,11 @@
             <groupId>pmd</groupId>
             <artifactId>pmd</artifactId>
         </dependency>
+        <dependency>
+            <groupId>de.alexanderlindhorst</groupId>
+            <artifactId>sonar-pmd-processor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

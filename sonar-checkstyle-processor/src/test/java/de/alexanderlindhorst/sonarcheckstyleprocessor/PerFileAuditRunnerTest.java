@@ -31,8 +31,8 @@ public class PerFileAuditRunnerTest {
 
     @Test
     public void checkNullConfigurationIsSubstitutedBySunChecks() throws Exception {
-        PerFileAuditRunner instance = new PerFileAuditRunner(null, new File(testFileResourceURL.toURI()));
-        Checker checker = getFieldValueFromObject(PerFileAuditRunner.class, instance, "checker");
+        PerFileCheckstyleAuditRunner instance = new PerFileCheckstyleAuditRunner(null, new File(testFileResourceURL.toURI()));
+        Checker checker = getFieldValueFromObject(PerFileCheckstyleAuditRunner.class, instance, "checker");
 
         assertThat(checker, is(notNullValue()));
 
@@ -42,7 +42,7 @@ public class PerFileAuditRunnerTest {
 
     @Test
     public void checkProblemsPropagatedToResultProvider() throws URISyntaxException, CheckstyleException {
-        PerFileAuditRunner instance = new PerFileAuditRunner(null, new File(testFileResourceURL.toURI()));
+        PerFileCheckstyleAuditRunner instance = new PerFileCheckstyleAuditRunner(null, new File(testFileResourceURL.toURI()));
         instance.run();
 
         assertThat(instance.getErrorMessages().size(), is(8));

@@ -1,7 +1,7 @@
 package de.alexanderlindhorst.sonar.pmd.plugin.util;
 
 import java.io.ByteArrayInputStream;
-import java.io.StringReader;
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +13,18 @@ import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
+import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.InputSource;
 
 import com.google.common.collect.Maps;
 
 import de.alexanderlindhorst.sonar.pmd.plugin.annotation.SonarPmdAnnotation;
+import de.alexanderlindhorst.sonarpmdprocessor.PerFilePMDAuditRunner;
 
 import net.sourceforge.pmd.PMD;
+import net.sourceforge.pmd.ReportListener;
 import net.sourceforge.pmd.RuleContext;
 import net.sourceforge.pmd.RuleSet;
 import net.sourceforge.pmd.RuleSetFactory;
@@ -111,53 +113,25 @@ public final class OpenJavaSourceRegistry {
         registeredAnnotations.clear();
     }
 
-//    private static PerFileAuditRunner processFile(FileObject fileObject) {
-//        PerFileAuditRunner auditRunner = null;
-//        try {
-//            URL configUrl = SonarPMDPluginUtils.loadConfigUrl();
-//            String configContent = SonarPMDPluginUtils.loadConfigurationContent();
-//            LOGGER.debug("retrieved configuration: {}", configContent);
-//            if (configContent == null) {
-//                auditRunner = new PerFileAuditRunner(null, Utilities.toFile(fileObject.toURI()));
-//            } else {
-//                InputSource inputSource = new InputSource(new StringReader(configContent));
-//                Configuration config = ConfigurationLoader.loadConfiguration(inputSource, null, true);
-//                LOGGER.debug("processing file using configuration {} ({})", configUrl, config);
-//                auditRunner = new PerFileAuditRunner(config, Utilities.toFile(fileObject.toURI()));
-//            }
-//        } catch (CheckstyleException checkstyleException) {
-//            Exceptions.printStackTrace(checkstyleException);
-//            return auditRunner;
-//        }
-//        auditRunner.run();
-//        if (auditRunner.hasAuditProblems()) {
-//            for (Throwable throwable : auditRunner.getAuditExceptions()) {
-//                Exceptions.attachMessage(throwable, throwable.getLocalizedMessage());
-//            }
-//        }
-//        return auditRunner;
-//    }
-    private static void processFile(FileObject fileObject) {
+    private static PerFilePMDAuditRunner processFile(FileObject fileObject) {
         try {
             URL configUrl = SonarPMDPluginUtils.loadConfigUrl();
             String configContent = SonarPMDPluginUtils.loadConfigurationContent();
             LOGGER.debug("retrieved configuration: {}", configContent);
-            PMD pmd = new PMD();
-            RuleContext context = new RuleContext();
             RuleSet ruleSet;
             if (configContent == null) {
-                //null config
-                ruleSet = null; //get some default
-//                auditRunner = new PerFileAuditRunner(null, Utilities.toFile(fileObject.toURI()));
+                LOGGER.debug("No config given, reverting to basic ruleset");
+                ruleSet = null;
             } else {
                 //real config
-                InputSource inputSource = new InputSource(new StringReader(configContent));
+                LOGGER.debug("processing file using configuration {}", configUrl);
                 ruleSet = new RuleSetFactory().createRuleSet(new ByteArrayInputStream(configContent.getBytes()));
-//                LOGGER.debug("processing file using configuration {} ({})", configUrl, config);
             }
-            pmd.processFile(fileObject.getInputStream(), ruleSet, context);
+            return new PerFilePMDAuditRunner(ruleSet, Utilities.toFile(fileObject.toURI()));
         } catch (Exception e) {
+            Exceptions.printStackTrace(e);
         }
+        return null;
     }
 
     private static LineCookie getLineCookieFromFileObject(FileObject fileObject) {
