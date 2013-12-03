@@ -2,9 +2,14 @@ package de.alexanderlindhorst.sonarpmdprocessor;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.List;
+
+import net.sourceforge.pmd.IRuleViolation;
 import net.sourceforge.pmd.PMD;
 import net.sourceforge.pmd.RuleContext;
 import net.sourceforge.pmd.RuleSet;
+import net.sourceforge.pmd.RuleSetFactory;
+import net.sourceforge.pmd.RuleSetNotFoundException;
 
 /**
  * @author alindhorst
@@ -19,6 +24,13 @@ public class PerFilePMDAuditRunner implements Runnable {
 
     public PerFilePMDAuditRunner(RuleSet ruleSet, File file) {
         this.ruleSet = ruleSet;
+        if (ruleSet == null) {
+            try {
+                ruleSet = new RuleSetFactory().createSingleRuleSet("basic.xml");
+            } catch (RuleSetNotFoundException ex) {
+                exception = ex;
+            }
+        }
         this.file = file;
         ruleContext = new RuleContext();
         resultProvider = new PMDResultProvider();
@@ -27,6 +39,9 @@ public class PerFilePMDAuditRunner implements Runnable {
 
     @Override
     public void run() {
+        if (hasAuditProblem()) {
+            return;
+        }
         PMD pmd = new PMD();
         try {
             pmd.processFile(new FileReader(file), ruleSet, ruleContext);
@@ -43,7 +58,7 @@ public class PerFilePMDAuditRunner implements Runnable {
         return exception;
     }
 
-    public Object getViolations() {
+    public List<IRuleViolation> getViolations() {
         return resultProvider.getViolations();
     }
 }

@@ -1,7 +1,6 @@
 package de.alexanderlindhorst.sonar.pmd.plugin.util;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +11,7 @@ import org.openide.cookies.LineCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
+import org.openide.text.Line;
 import org.openide.util.Exceptions;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
@@ -23,9 +23,7 @@ import com.google.common.collect.Maps;
 import de.alexanderlindhorst.sonar.pmd.plugin.annotation.SonarPmdAnnotation;
 import de.alexanderlindhorst.sonarpmdprocessor.PerFilePMDAuditRunner;
 
-import net.sourceforge.pmd.PMD;
-import net.sourceforge.pmd.ReportListener;
-import net.sourceforge.pmd.RuleContext;
+import net.sourceforge.pmd.IRuleViolation;
 import net.sourceforge.pmd.RuleSet;
 import net.sourceforge.pmd.RuleSetFactory;
 import static de.alexanderlindhorst.sonar.pmd.plugin.util.SonarPMDPluginUtils.getUnderlyingFile;
@@ -78,21 +76,21 @@ public final class OpenJavaSourceRegistry {
         JavaSource source = JavaSource.forFileObject(fileObject);
         List<SonarPmdAnnotation> annotations = ANNOTATION_REGISTRY.get(source);
 
-//        PerFileAuditRunner auditRunner = processFile(fileObject);
-//        if (auditRunner == null) {
-//            return;
-//        }
-//        Line.Set lineSet = getLineCookieFromFileObject(fileObject).getLineSet();
-//        for (LocalizedMessage localizedMessage : auditRunner.getErrorMessages()) {
-//            int targetIndex = localizedMessage.getLineNo() - 1;
-//            if (targetIndex < 0) {
-//                targetIndex = 0;
-//            }
-//            Line current = lineSet.getCurrent(targetIndex);
-//            SonarPmdAnnotation annotation = new SonarPmdAnnotation(localizedMessage.getMessage());
-//            annotation.attach(current);
-//            annotations.add(annotation);
-//        }
+        PerFilePMDAuditRunner auditRunner = processFile(fileObject);
+        if (auditRunner == null) {
+            return;
+        }
+        Line.Set lineSet = getLineCookieFromFileObject(fileObject).getLineSet();
+        for (IRuleViolation violation : auditRunner.getViolations()) {
+            int targetIndex = violation.getBeginLine() - 1;
+            if (targetIndex < 0) {
+                targetIndex = 0;
+            }
+            Line current = lineSet.getCurrent(targetIndex);
+            SonarPmdAnnotation annotation = new SonarPmdAnnotation(violation.getDescription());
+            annotation.attach(current);
+            annotations.add(annotation);
+        }
     }
 
     public static void clearOldAnnotationsFor(FileObject fileObject) {
