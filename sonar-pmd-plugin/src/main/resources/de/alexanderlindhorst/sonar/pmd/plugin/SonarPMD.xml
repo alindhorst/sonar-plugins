@@ -6,7 +6,7 @@
       description_key="SonarPMDAnnotation"
       localizing_bundle="de.alexanderlindhorst.sonar.pmd.plugin.Bundle"
       visible="true" 
-      glyph="nbresloc:/de/alexanderlindhorst/sonar/pmd/plugin/icons/checkstyle.png"
+      glyph="nbresloc:/de/alexanderlindhorst/sonar/pmd/plugin/icons/pmdsonar.png"
       type="line"   
       severity="warning"
       custom_sidebar_color="#dd00dd"
