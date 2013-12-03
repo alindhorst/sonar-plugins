@@ -112,6 +112,7 @@ public final class OpenJavaSourceRegistry {
     }
 
     private static PerFilePMDAuditRunner processFile(FileObject fileObject) {
+        PerFilePMDAuditRunner auditRunner = null;
         try {
             URL configUrl = SonarPMDPluginUtils.loadConfigUrl();
             String configContent = SonarPMDPluginUtils.loadConfigurationContent();
@@ -125,11 +126,15 @@ public final class OpenJavaSourceRegistry {
                 LOGGER.debug("processing file using configuration {}", configUrl);
                 ruleSet = new RuleSetFactory().createRuleSet(new ByteArrayInputStream(configContent.getBytes()));
             }
-            return new PerFilePMDAuditRunner(ruleSet, Utilities.toFile(fileObject.toURI()));
+            auditRunner = new PerFilePMDAuditRunner(ruleSet, Utilities.toFile(fileObject.toURI()));
+            auditRunner.run();
+            if (auditRunner.hasAuditProblem()) {
+                Exceptions.printStackTrace(auditRunner.getAuditProblem());
+            }
         } catch (Exception e) {
             Exceptions.printStackTrace(e);
         }
-        return null;
+        return auditRunner;
     }
 
     private static LineCookie getLineCookieFromFileObject(FileObject fileObject) {

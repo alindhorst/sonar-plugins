@@ -162,8 +162,13 @@ public final class SonarPMDPluginUtils {
 
             if (refresh) {
                 //refresh preferences by storing and calling ourselves once again
-                storeConfig(loadConfigUrl().toExternalForm());
-                config = loadConfigurationContent();
+                URL configUrl = loadConfigUrl();
+                if (configUrl != null) {
+                    storeConfig(configUrl.toExternalForm());
+                    config = loadConfigurationContent();
+                } else {
+                    config = null;
+                }
             } else {
                 config = preferences.get(CONFIG_CONTENT, null);
             }
