@@ -1,6 +1,10 @@
-
 package de.alexanderlindhorst.sonarpmdprocessor;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.sourceforge.pmd.IRuleViolation;
 import net.sourceforge.pmd.ReportListener;
 import net.sourceforge.pmd.stat.Metric;
@@ -8,16 +12,23 @@ import net.sourceforge.pmd.stat.Metric;
 /**
  * @author alindhorst
  */
-public class PMDResultProvider implements ReportListener{
+class PMDResultProvider implements ReportListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PMDResultProvider.class);
+    private List<IRuleViolation> violations = new ArrayList<IRuleViolation>();
 
     @Override
     public void ruleViolationAdded(IRuleViolation ruleViolation) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        LOGGER.debug("Violation added: {}", ruleViolation);
+        violations.add(ruleViolation);
     }
 
     @Override
     public void metricAdded(Metric metric) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        LOGGER.debug("Metric added: {}", metric);
     }
 
+    List<IRuleViolation> getViolations() {
+        return violations;
+    }
 }

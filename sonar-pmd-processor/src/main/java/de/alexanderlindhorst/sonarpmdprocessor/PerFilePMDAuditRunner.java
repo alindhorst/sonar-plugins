@@ -13,8 +13,8 @@ public class PerFilePMDAuditRunner implements Runnable {
 
     private final RuleSet ruleSet;
     private final File file;
-    private RuleContext ruleContext;
-    private PMDResultProvider resultProvider;
+    private final RuleContext ruleContext;
+    private final PMDResultProvider resultProvider;
     private Exception exception;
 
     public PerFilePMDAuditRunner(RuleSet ruleSet, File file) {
@@ -41,5 +41,9 @@ public class PerFilePMDAuditRunner implements Runnable {
 
     public Exception getAuditProblem() {
         return exception;
+    }
+
+    public Object getViolations() {
+        return resultProvider.getViolations();
     }
 }
