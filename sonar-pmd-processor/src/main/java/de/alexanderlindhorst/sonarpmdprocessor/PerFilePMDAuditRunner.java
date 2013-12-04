@@ -10,6 +10,7 @@ import net.sourceforge.pmd.RuleContext;
 import net.sourceforge.pmd.RuleSet;
 import net.sourceforge.pmd.RuleSetFactory;
 import net.sourceforge.pmd.RuleSetNotFoundException;
+import net.sourceforge.pmd.SourceType;
 
 /**
  * @author alindhorst
@@ -17,23 +18,28 @@ import net.sourceforge.pmd.RuleSetNotFoundException;
 public class PerFilePMDAuditRunner implements Runnable {
 
     private final RuleSet ruleSet;
-    private final File file;
     private final RuleContext ruleContext;
     private final PMDResultProvider resultProvider;
     private Exception exception;
 
     public PerFilePMDAuditRunner(RuleSet ruleSet, File file) {
-        this.ruleSet = ruleSet;
+        RuleSet checked = null;
         if (ruleSet == null) {
             try {
-                ruleSet = new RuleSetFactory().createSingleRuleSet("basic.xml");
+                checked = new RuleSetFactory().createSingleRuleSet("rulesets/basic.xml");
             } catch (RuleSetNotFoundException ex) {
                 exception = ex;
             }
+        } else {
+            checked = ruleSet;
         }
-        this.file = file;
+        this.ruleSet = checked;
         ruleContext = new RuleContext();
         resultProvider = new PMDResultProvider();
+        ruleContext.setSourceCodeFile(file);
+        ruleContext.setSourceCodeFilename(file.getAbsolutePath());
+        //TODO: make this configurable
+        ruleContext.setSourceType(SourceType.JAVA_16);
         ruleContext.getReport().addListener(resultProvider);
     }
 
@@ -44,7 +50,7 @@ public class PerFilePMDAuditRunner implements Runnable {
         }
         PMD pmd = new PMD();
         try {
-            pmd.processFile(new FileReader(file), ruleSet, ruleContext);
+            pmd.processFile(new FileReader(ruleContext.getSourceCodeFile()), ruleSet, ruleContext);
         } catch (Exception ex) {
             exception = ex;
         }
