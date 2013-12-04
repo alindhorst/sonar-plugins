@@ -10,6 +10,7 @@ import net.sourceforge.pmd.RuleContext;
 import net.sourceforge.pmd.RuleSet;
 import net.sourceforge.pmd.RuleSetFactory;
 import net.sourceforge.pmd.RuleSetNotFoundException;
+import net.sourceforge.pmd.RuleSets;
 import net.sourceforge.pmd.SourceType;
 
 /**
@@ -50,7 +51,8 @@ public class PerFilePMDAuditRunner implements Runnable {
         }
         PMD pmd = new PMD();
         try {
-            pmd.processFile(new FileReader(ruleContext.getSourceCodeFile()), ruleSet, ruleContext);
+            pmd.processFile(new FileReader(ruleContext.getSourceCodeFile()), new RuleSets(ruleSet), ruleContext,
+                    ruleContext.getSourceType());
         } catch (Exception ex) {
             exception = ex;
         }
