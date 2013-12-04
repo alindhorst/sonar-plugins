@@ -26,6 +26,8 @@ import de.alexanderlindhorst.sonarpmdprocessor.PerFilePMDAuditRunner;
 import net.sourceforge.pmd.IRuleViolation;
 import net.sourceforge.pmd.RuleSet;
 import net.sourceforge.pmd.RuleSetFactory;
+import net.sourceforge.pmd.SourceType;
+
 import static de.alexanderlindhorst.sonar.pmd.plugin.util.SonarPMDPluginUtils.getUnderlyingFile;
 import static de.alexanderlindhorst.sonar.pmd.plugin.util.SonarPMDPluginUtils.getUnderlyingJavaFile;
 
@@ -116,6 +118,7 @@ public final class OpenJavaSourceRegistry {
         try {
             URL configUrl = SonarPMDPluginUtils.loadConfigUrl();
             String configContent = SonarPMDPluginUtils.loadConfigurationContent();
+            SourceType sourceType = SonarPMDPluginUtils.loadConfigSourceType();
             LOGGER.debug("retrieved configuration: {}", configContent);
             RuleSet ruleSet;
             if (configContent == null) {
@@ -126,7 +129,7 @@ public final class OpenJavaSourceRegistry {
                 LOGGER.debug("processing file using configuration {}", configUrl);
                 ruleSet = new RuleSetFactory().createRuleSet(new ByteArrayInputStream(configContent.getBytes()));
             }
-            auditRunner = new PerFilePMDAuditRunner(ruleSet, Utilities.toFile(fileObject.toURI()));
+            auditRunner = new PerFilePMDAuditRunner(ruleSet, sourceType, Utilities.toFile(fileObject.toURI()));
             auditRunner.run();
             if (auditRunner.hasAuditProblem()) {
                 Exceptions.printStackTrace(auditRunner.getAuditProblem());

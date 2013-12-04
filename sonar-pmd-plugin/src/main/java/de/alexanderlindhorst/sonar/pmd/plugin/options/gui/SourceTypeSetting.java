@@ -43,6 +43,15 @@ enum SourceTypeSetting {
         return sourceType;
     }
 
+    public static SourceTypeSetting getBySourceType(SourceType sourceType) {
+        for (SourceTypeSetting sourceTypeSetting : values()) {
+            if (sourceTypeSetting.getSourceType().equals(sourceType)) {
+                return sourceTypeSetting;
+            }
+        }
+        throw new IllegalArgumentException("SourceType not supported: " + sourceType);
+    }
+
     public static ListCellRenderer<SourceTypeSetting> getListCellRenderer() {
         return new Renderer();
     }

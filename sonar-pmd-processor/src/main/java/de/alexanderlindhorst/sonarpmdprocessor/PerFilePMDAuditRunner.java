@@ -23,7 +23,7 @@ public class PerFilePMDAuditRunner implements Runnable {
     private final PMDResultProvider resultProvider;
     private Exception exception;
 
-    public PerFilePMDAuditRunner(RuleSet ruleSet, File file) {
+    public PerFilePMDAuditRunner(RuleSet ruleSet, SourceType sourceType, File file) {
         RuleSet checked = null;
         if (ruleSet == null) {
             try {
@@ -40,7 +40,7 @@ public class PerFilePMDAuditRunner implements Runnable {
         ruleContext.setSourceCodeFile(file);
         ruleContext.setSourceCodeFilename(file.getAbsolutePath());
         //TODO: make this configurable
-        ruleContext.setSourceType(SourceType.JAVA_16);
+        ruleContext.setSourceType(sourceType);
         ruleContext.getReport().addListener(resultProvider);
     }
 

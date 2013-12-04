@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 import java.util.prefs.Preferences;
+
 import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.api.project.Project;
@@ -22,6 +23,8 @@ import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.sourceforge.pmd.SourceType;
+
 import static de.alexanderlindhorst.sonar.pmd.plugin.util.OpenJavaSourceRegistry.markTopComponentClosed;
 import static de.alexanderlindhorst.sonar.pmd.plugin.util.OpenJavaSourceRegistry.markTopComponentOpened;
 
@@ -35,6 +38,7 @@ public final class SonarPMDPluginUtils {
     private static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor("sonar plugins request processor", 5);
     private static final String CONFIG_PROPERTY = "config_url";
     private static final String CONFIG_CONTENT = "config_content";
+    private static final String CONFIG_SOURCETYPE = "config_sourcetype";
     private static final String CONFIG_MODIFICATION_TIME = "config_modification";
 
     private SonarPMDPluginUtils() {
@@ -105,23 +109,24 @@ public final class SonarPMDPluginUtils {
         markTopComponentClosed(topComponent);
     }
 
-    public static void storeConfig(String url) {
+    public static void storeConfig(URL url, SourceType sourceType) {
         Preferences preferences = NbPreferences.forModule(SonarPMDPluginUtils.class);
         if (preferences != null) {
-            if (url == null || url.isEmpty()) {
-                preferences.put(CONFIG_PROPERTY, "");
-                preferences.put(CONFIG_CONTENT, "");
-            } else {
-                URL configUrl;
+            String configURLValue, configContent, configSourceType;
+            if (url != null) {
                 try {
-                    configUrl = URI.create(url).toURL();
-                    String configurationContent = downloadConfigurationFrom(configUrl);
-                    preferences.put(CONFIG_PROPERTY, url);
-                    preferences.put(CONFIG_CONTENT, configurationContent);
+                    configURLValue = url.toExternalForm();
+                    configContent = downloadConfigurationFrom(url);
+                    preferences.put(CONFIG_CONTENT, configContent);
+                    preferences.put(CONFIG_PROPERTY, configURLValue);
                     preferences.put(CONFIG_MODIFICATION_TIME, "" + new Date().getTime());
                 } catch (IOException ex) {
                     Exceptions.printStackTrace(ex);
                 }
+            }
+            if (sourceType != null) {
+                configSourceType = sourceType.getId();
+                preferences.put(CONFIG_SOURCETYPE, configSourceType);
             }
         }
     }
@@ -139,6 +144,18 @@ public final class SonarPMDPluginUtils {
             }
         }
         return null;
+    }
+
+    public static SourceType loadConfigSourceType() {
+        Preferences preferences = NbPreferences.forModule(SonarPMDPluginUtils.class);
+        if (preferences != null) {
+            String sourceTypeId = preferences.get(CONFIG_SOURCETYPE, null);
+            if (sourceTypeId != null && !sourceTypeId.isEmpty()) {
+                return SourceType.getSourceTypeForId(sourceTypeId);
+            }
+        }
+        //default type
+        return SourceType.JAVA_16;
     }
 
     public static String loadConfigurationContent() {
@@ -164,7 +181,7 @@ public final class SonarPMDPluginUtils {
                 //refresh preferences by storing and calling ourselves once again
                 URL configUrl = loadConfigUrl();
                 if (configUrl != null) {
-                    storeConfig(configUrl.toExternalForm());
+                    storeConfig(configUrl, loadConfigSourceType());
                     config = loadConfigurationContent();
                 } else {
                     config = null;
