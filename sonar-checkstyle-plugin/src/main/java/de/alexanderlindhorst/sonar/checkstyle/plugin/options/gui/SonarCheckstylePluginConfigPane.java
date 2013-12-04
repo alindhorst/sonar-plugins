@@ -13,12 +13,12 @@ import org.openide.util.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 import javax.swing.JFileChooser;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileSystemView;
-
-import com.google.common.collect.Sets;
 
 /**
  *
@@ -80,12 +80,14 @@ public class SonarCheckstylePluginConfigPane extends javax.swing.JPanel {
         urlField = new javax.swing.JTextField();
         fileChooserButton = new javax.swing.JButton();
 
-        setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         setLayout(new java.awt.GridBagLayout());
 
         org.openide.awt.Mnemonics.setLocalizedText(label, org.openide.util.NbBundle.getMessage(SonarCheckstylePluginConfigPane.class, "SonarCheckstylePluginConfigPane.label.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.ipady = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
         add(label, gridBagConstraints);
 
@@ -97,6 +99,8 @@ public class SonarCheckstylePluginConfigPane extends javax.swing.JPanel {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.ipady = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.weightx = 2.0;
         gridBagConstraints.weighty = 2.0;
@@ -111,6 +115,8 @@ public class SonarCheckstylePluginConfigPane extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.gridheight = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.ipady = 5;
         add(fileChooserButton, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
