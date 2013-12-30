@@ -1,23 +1,23 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
 
-  <parent>
+    <parent>
+        <groupId>de.alexanderlindhorst</groupId>
+        <artifactId>sonar-violations-plugins</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <groupId>de.alexanderlindhorst</groupId>
-    <artifactId>sonar-violations-plugins</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
+    <artifactId>sonar-findbugs-processor</artifactId>
+    <name>Sonar Findbugs Processor</name>
 
-  <groupId>de.alexanderlindhorst</groupId>
-  <artifactId>sonar-findbugs-processor</artifactId>
-  <name>Sonar Findbugs Processor</name>
-
-  <dependencies>
-      <dependency>
-          <groupId>com.google.code.findbugs</groupId>
-          <artifactId>findbugs</artifactId>
-      </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>findbugs</artifactId>
+        </dependency>
+    </dependencies>
 </project>
