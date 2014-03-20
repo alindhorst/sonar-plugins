@@ -10,6 +10,7 @@ import edu.umd.cs.findbugs.BugCollection;
 import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.BugReporter;
 import edu.umd.cs.findbugs.BugReporterObserver;
+import edu.umd.cs.findbugs.DetectorFactoryCollection;
 import edu.umd.cs.findbugs.FindBugs2;
 import edu.umd.cs.findbugs.Project;
 import edu.umd.cs.findbugs.ProjectStats;
@@ -26,6 +27,9 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
     public FindbugsResultProvider(Project project, File targetFile) {
         this.project = project;
         findbugs = new FindBugs2();
+        findbugs.setProject(project);
+        findbugs.setUserPreferences(project.getConfiguration());
+        findbugs.setDetectorFactoryCollection(DetectorFactoryCollection.instance());
         findbugs.setBugReporter(this);
     }
 

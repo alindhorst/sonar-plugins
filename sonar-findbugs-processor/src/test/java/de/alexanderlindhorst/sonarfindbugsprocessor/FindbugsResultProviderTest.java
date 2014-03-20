@@ -2,15 +2,17 @@ package de.alexanderlindhorst.sonarfindbugsprocessor;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Properties;
+import java.util.HashMap;
 
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.Project;
+import edu.umd.cs.findbugs.config.UserPreferences;
+
+import static java.lang.Boolean.TRUE;
 
 public class FindbugsResultProviderTest {
 
@@ -25,14 +27,13 @@ public class FindbugsResultProviderTest {
     }
 
     @Test
-    @Ignore
     public void findBugProjectGetsActivated() throws Exception {
-        Properties properties = System.getProperties();
-        for (String propertyName : properties.stringPropertyNames()) {
-            LOGGER.info("{}: {}", propertyName, properties.get(propertyName));
-        }
         LOGGER.info("URL: " + testFileResourceURL);
-        Project project = Project.readXML(new File(configURL.toURI()));
+        Project project = new Project();
+        UserPreferences configuration = project.getConfiguration();
+        HashMap<String, Boolean> hashMap = new HashMap<String,Boolean>();
+        hashMap.put(new File(configURL.toURI()).getAbsolutePath(),TRUE);
+        configuration.setIncludeFilterFiles(hashMap);
         project.setProjectName("Testproject");
         project.addSourceDir(System.getProperty("user.dir") + "/target/classes");
         project.addAuxClasspathEntry(System.getProperty("user.dir") + "/target/classes");
