@@ -112,6 +112,12 @@
             <artifactId>pmd</artifactId>
         </dependency>
         <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.6.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>de.alexanderlindhorst</groupId>
             <artifactId>sonar-pmd-processor</artifactId>
             <version>${project.version}</version>

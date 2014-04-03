@@ -3,4 +3,4 @@ OpenIDE-Module: de.alexanderlindhorst.sonar.pmd.plugin
 OpenIDE-Module-Layer: de/alexanderlindhorst/sonar/pmd/plugin/layer.xml
 OpenIDE-Module-Localizing-Bundle: de/alexanderlindhorst/sonar/pmd/plugin/Bundle.properties
 OpenIDE-Module-Display-Category: sonar-plugins
-OpenIDE-Module-Specification-Version: 1.16
+OpenIDE-Module-Specification-Version: 1.17
