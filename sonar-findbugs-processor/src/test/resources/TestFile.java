@@ -1,7 +1,10 @@
 
 public class TestFile {
 
-    public static void main(String... args) {
-        if (true == false)  System.exit(0);
+    private static Integer number=0;
+    public void test() {
+        int index=52;
+        while(index < 45) number++;
+        test();
     }
 }

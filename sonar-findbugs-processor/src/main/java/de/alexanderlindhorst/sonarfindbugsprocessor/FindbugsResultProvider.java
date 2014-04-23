@@ -1,10 +1,15 @@
 package de.alexanderlindhorst.sonarfindbugsprocessor;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
 import edu.umd.cs.findbugs.BugCollection;
 import edu.umd.cs.findbugs.BugInstance;
@@ -12,6 +17,7 @@ import edu.umd.cs.findbugs.BugReporter;
 import edu.umd.cs.findbugs.BugReporterObserver;
 import edu.umd.cs.findbugs.DetectorFactoryCollection;
 import edu.umd.cs.findbugs.FindBugs2;
+import edu.umd.cs.findbugs.Priorities;
 import edu.umd.cs.findbugs.Project;
 import edu.umd.cs.findbugs.ProjectStats;
 import edu.umd.cs.findbugs.classfile.ClassDescriptor;
@@ -19,23 +25,44 @@ import edu.umd.cs.findbugs.classfile.MethodDescriptor;
 
 public class FindbugsResultProvider implements Runnable, BugReporter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FindbugsResultProvider.class);
-    private Project project;
-    private FindBugs2 findbugs;
-    private File targetFile;
+    public static enum Priority {
 
-    public FindbugsResultProvider(Project project, File targetFile) {
+        EXPERIMENTAL(Priorities.EXP_PRIORITY - 1),
+        HIGH(Priorities.HIGH_PRIORITY - 1),
+        NORMAL(Priorities.NORMAL_PRIORITY - 1),
+        LOW(Priorities.LOW_PRIORITY - 1),
+        IGNORE(Priorities.IGNORE_PRIORITY - 1);
+
+        private final int value;
+
+        private Priority(int value) {
+            this.value = value;
+        }
+
+        public int getFindBugsPriorityValue() {
+            return value;
+        }
+    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(FindbugsResultProvider.class);
+    private final Project project;
+    private final ProjectStats projectStats;
+    private final FindBugs2 findbugs;
+    private final List<BugInstance> bugs;
+
+    public FindbugsResultProvider(Project project) {
         this.project = project;
+        this.projectStats = new ProjectStats();
         findbugs = new FindBugs2();
         findbugs.setProject(project);
         findbugs.setUserPreferences(project.getConfiguration());
         findbugs.setDetectorFactoryCollection(DetectorFactoryCollection.instance());
-        findbugs.setBugReporter(this);
+        bugs = new ArrayList<BugInstance>();
     }
 
     @Override
     public void run() {
         try {
+            findbugs.setBugReporter(this);
             findbugs.execute();
         } catch (IOException ex) {
             LOGGER.error("Exception while processing file", ex);
@@ -57,6 +84,8 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
     @Override
     public void reportBug(BugInstance bugInstance) {
         LOGGER.error("Bug reported: {}", bugInstance);
+        projectStats.addBug(bugInstance);
+        bugs.add(bugInstance);
     }
 
     @Override
@@ -66,7 +95,6 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
 
     @Override
     public void reportQueuedErrors() {
-        LOGGER.info("reportQueuedErrors()");
     }
 
     @Override
@@ -76,8 +104,6 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
 
     @Override
     public ProjectStats getProjectStats() {
-        LOGGER.info("getProjectStats()");
-        ProjectStats projectStats = new ProjectStats();
         return projectStats;
     }
 
@@ -89,12 +115,10 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
 
     @Override
     public void reportMissingClass(ClassNotFoundException ex) {
-        LOGGER.info("reportMissingClass({})", ex);
     }
 
     @Override
     public void reportMissingClass(ClassDescriptor classDescriptor) {
-        LOGGER.info("reportMissingClass({})", classDescriptor);
     }
 
     @Override
@@ -115,5 +139,14 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
     @Override
     public void observeClass(ClassDescriptor classDescriptor) {
         LOGGER.info("observeClass({})", classDescriptor);
+    }
+
+    public Collection<BugInstance> getBugsFor(final String clazzName) {
+        return Collections2.filter(bugs, new Predicate<BugInstance>(){
+            @Override
+            public boolean apply(BugInstance input) {
+                return input.getPrimaryClass().getClassName().equals(clazzName);
+            }
+        });
     }
 }
