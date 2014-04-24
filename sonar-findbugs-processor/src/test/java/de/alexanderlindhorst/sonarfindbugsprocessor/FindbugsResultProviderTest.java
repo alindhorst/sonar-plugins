@@ -4,11 +4,14 @@ import java.io.File;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.Project;
@@ -16,6 +19,8 @@ import edu.umd.cs.findbugs.SourceLineAnnotation;
 import edu.umd.cs.findbugs.config.UserPreferences;
 
 import static java.lang.Boolean.TRUE;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 public class FindbugsResultProviderTest {
 
@@ -45,12 +50,18 @@ public class FindbugsResultProviderTest {
         FindbugsResultProvider instance = new FindbugsResultProvider(project);
         instance.run();
 
-        LOGGER.info("{} bugs", instance.getProjectStats().getTotalBugs());
         Collection<BugInstance> collection = instance.getBugsFor("TestFile");
+        List<Integer> annotatedLines = Lists.newArrayListWithCapacity(collection.size());
         for (BugInstance bugInstance : collection) {
             SourceLineAnnotation annotation = bugInstance.getPrimarySourceLineAnnotation();
-            LOGGER.info("Bug: {} at {}:{}", bugInstance.getMessageWithPriorityType(), annotation.getSourceFile(), annotation.
-                    getStartLine());
+            LOGGER.info("Bug: {} at {}:{}",
+                    bugInstance.getMessageWithPriorityType(), annotation.getSourceFile(), annotation.getStartLine());
+            annotatedLines.add(annotation.getStartLine());
         }
+
+        assertThat(collection.size(), is(3));
+        assertThat(annotatedLines.contains(4), is(true));
+        assertThat(annotatedLines.contains(7), is(true));
+        assertThat(annotatedLines.contains(8), is(true));
     }
 }

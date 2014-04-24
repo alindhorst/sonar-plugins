@@ -17,7 +17,6 @@ import edu.umd.cs.findbugs.BugReporter;
 import edu.umd.cs.findbugs.BugReporterObserver;
 import edu.umd.cs.findbugs.DetectorFactoryCollection;
 import edu.umd.cs.findbugs.FindBugs2;
-import edu.umd.cs.findbugs.Priorities;
 import edu.umd.cs.findbugs.Project;
 import edu.umd.cs.findbugs.ProjectStats;
 import edu.umd.cs.findbugs.classfile.ClassDescriptor;
@@ -25,32 +24,13 @@ import edu.umd.cs.findbugs.classfile.MethodDescriptor;
 
 public class FindbugsResultProvider implements Runnable, BugReporter {
 
-    public static enum Priority {
-
-        EXPERIMENTAL(Priorities.EXP_PRIORITY - 1),
-        HIGH(Priorities.HIGH_PRIORITY - 1),
-        NORMAL(Priorities.NORMAL_PRIORITY - 1),
-        LOW(Priorities.LOW_PRIORITY - 1),
-        IGNORE(Priorities.IGNORE_PRIORITY - 1);
-
-        private final int value;
-
-        private Priority(int value) {
-            this.value = value;
-        }
-
-        public int getFindBugsPriorityValue() {
-            return value;
-        }
-    }
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(FindbugsResultProvider.class);
-    private final Project project;
     private final ProjectStats projectStats;
     private final FindBugs2 findbugs;
     private final List<BugInstance> bugs;
 
     public FindbugsResultProvider(Project project) {
-        this.project = project;
         this.projectStats = new ProjectStats();
         findbugs = new FindBugs2();
         findbugs.setProject(project);
@@ -73,18 +53,15 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
 
     @Override
     public void setErrorVerbosity(int level) {
-        LOGGER.info("setErrorVerbosity({})", level);
     }
 
     @Override
     public void setPriorityThreshold(int threshold) {
-        LOGGER.info("setPriorityThreshold({})", threshold);
     }
 
     @Override
     public void reportBug(BugInstance bugInstance) {
-        LOGGER.error("Bug reported: {}", bugInstance);
-        projectStats.addBug(bugInstance);
+        LOGGER.info("Bug reported: {}", bugInstance);
         bugs.add(bugInstance);
     }
 
@@ -123,17 +100,16 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
 
     @Override
     public void logError(String message) {
-        LOGGER.error("logError({})", message);
+        LOGGER.info("logError({})", message);
     }
 
     @Override
     public void logError(String message, Throwable e) {
-        LOGGER.error("logError()", e);
+        LOGGER.info("logError()", e);
     }
 
     @Override
     public void reportSkippedAnalysis(MethodDescriptor method) {
-        LOGGER.info("reportSkippedAnalysis({})", method);
     }
 
     @Override
