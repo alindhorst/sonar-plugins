@@ -181,7 +181,12 @@ public final class SonarPMDPluginUtils {
                 //refresh preferences by storing and calling ourselves once again
                 URL configUrl = loadConfigUrl();
                 if (configUrl != null) {
-                    storeConfig(configUrl, loadConfigSourceType());
+                    try {
+                        storeConfig(configUrl, loadConfigSourceType());
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't store config", e);
+                        return null;
+                    }
                     config = loadConfigurationContent();
                 } else {
                     config = null;

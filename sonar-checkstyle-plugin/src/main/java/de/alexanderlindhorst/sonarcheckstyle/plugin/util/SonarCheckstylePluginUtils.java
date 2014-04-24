@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 import java.util.prefs.Preferences;
+
 import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.api.project.Project;
@@ -164,7 +165,12 @@ public final class SonarCheckstylePluginUtils {
                 //refresh preferences by storing and calling ourselves once again
                 URL configUrl = loadConfigUrl();
                 if (configUrl != null) {
-                    storeConfig(configUrl.toExternalForm());
+                    try {
+                        storeConfig(configUrl.toExternalForm());
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't retrieve configuration", e);
+                        return null;
+                    }
                     config = loadConfigurationContent();
                 } else {
                     config = null;
