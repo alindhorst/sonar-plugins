@@ -1,48 +1,60 @@
 package de.alexanderlindhorst.sonarfindbugsprocessor;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-
-import edu.umd.cs.findbugs.BugCollection;
 import edu.umd.cs.findbugs.BugInstance;
-import edu.umd.cs.findbugs.BugReporter;
-import edu.umd.cs.findbugs.BugReporterObserver;
 import edu.umd.cs.findbugs.DetectorFactoryCollection;
 import edu.umd.cs.findbugs.FindBugs2;
 import edu.umd.cs.findbugs.Project;
-import edu.umd.cs.findbugs.ProjectStats;
-import edu.umd.cs.findbugs.classfile.ClassDescriptor;
-import edu.umd.cs.findbugs.classfile.MethodDescriptor;
+import edu.umd.cs.findbugs.config.UserPreferences;
 
-public class FindbugsResultProvider implements Runnable, BugReporter {
+import static java.lang.Boolean.TRUE;
 
-    
+public class FindbugsResultProvider implements Runnable {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FindbugsResultProvider.class);
-    private final ProjectStats projectStats;
     private final FindBugs2 findbugs;
-    private final List<BugInstance> bugs;
+    private final String clazzName;
+    private final PerFileFindBugsAuditRunner auditRunner;
 
-    public FindbugsResultProvider(Project project) {
-        this.projectStats = new ProjectStats();
+    public FindbugsResultProvider(List<String> sourceDirs, List<String> auxClassPathDirs, File configuration, File targetFile,
+            String clazzName) {
+        this.clazzName = clazzName;
+        this.auditRunner = new PerFileFindBugsAuditRunner();
+        Project project = initProject(configuration, auxClassPathDirs, sourceDirs, targetFile);
         findbugs = new FindBugs2();
         findbugs.setProject(project);
         findbugs.setUserPreferences(project.getConfiguration());
         findbugs.setDetectorFactoryCollection(DetectorFactoryCollection.instance());
-        bugs = new ArrayList<BugInstance>();
+    }
+
+    private Project initProject(File configuration, List<String> auxClassPathDirs, List<String> sourceDirs, File targetFile) {
+        Project project = new Project();
+        UserPreferences userPrefs = project.getConfiguration();
+        HashMap<String, Boolean> hashMap = new HashMap<String, Boolean>();
+        hashMap.put(configuration.getAbsolutePath(), TRUE);
+        userPrefs.setIncludeFilterFiles(hashMap);
+        for (String entry : auxClassPathDirs) {
+            project.addAuxClasspathEntry(entry);
+        }
+        for (String entry : sourceDirs) {
+            project.addSourceDir(entry);
+        }
+        project.addFile(targetFile.getAbsolutePath());
+        return project;
     }
 
     @Override
     public void run() {
         try {
-            findbugs.setBugReporter(this);
+            findbugs.setBugReporter(auditRunner);
             findbugs.execute();
         } catch (IOException ex) {
             LOGGER.error("Exception while processing file", ex);
@@ -51,78 +63,7 @@ public class FindbugsResultProvider implements Runnable, BugReporter {
         }
     }
 
-    @Override
-    public void setErrorVerbosity(int level) {
-    }
-
-    @Override
-    public void setPriorityThreshold(int threshold) {
-    }
-
-    @Override
-    public void reportBug(BugInstance bugInstance) {
-        LOGGER.info("Bug reported: {}", bugInstance);
-        bugs.add(bugInstance);
-    }
-
-    @Override
-    public void finish() {
-        LOGGER.info("finish()");
-    }
-
-    @Override
-    public void reportQueuedErrors() {
-    }
-
-    @Override
-    public void addObserver(BugReporterObserver observer) {
-        LOGGER.info("addObserver({})", observer);
-    }
-
-    @Override
-    public ProjectStats getProjectStats() {
-        return projectStats;
-    }
-
-    @Override
-    public BugCollection getBugCollection() {
-        LOGGER.info("getBugCollection()");
-        return null;
-    }
-
-    @Override
-    public void reportMissingClass(ClassNotFoundException ex) {
-    }
-
-    @Override
-    public void reportMissingClass(ClassDescriptor classDescriptor) {
-    }
-
-    @Override
-    public void logError(String message) {
-        LOGGER.info("logError({})", message);
-    }
-
-    @Override
-    public void logError(String message, Throwable e) {
-        LOGGER.info("logError()", e);
-    }
-
-    @Override
-    public void reportSkippedAnalysis(MethodDescriptor method) {
-    }
-
-    @Override
-    public void observeClass(ClassDescriptor classDescriptor) {
-        LOGGER.info("observeClass({})", classDescriptor);
-    }
-
-    public Collection<BugInstance> getBugsFor(final String clazzName) {
-        return Collections2.filter(bugs, new Predicate<BugInstance>(){
-            @Override
-            public boolean apply(BugInstance input) {
-                return input.getPrimaryClass().getClassName().equals(clazzName);
-            }
-        });
+    public Collection<BugInstance> getIssues() {
+        return auditRunner.getBugsFor(clazzName);
     }
 }
