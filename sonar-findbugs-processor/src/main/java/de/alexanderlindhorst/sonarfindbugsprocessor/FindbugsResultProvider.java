@@ -1,7 +1,6 @@
 package de.alexanderlindhorst.sonarfindbugsprocessor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -56,9 +55,7 @@ public class FindbugsResultProvider implements Runnable {
         try {
             findbugs.setBugReporter(auditRunner);
             findbugs.execute();
-        } catch (IOException ex) {
-            LOGGER.error("Exception while processing file", ex);
-        } catch (InterruptedException ex) {
+        } catch (Exception ex) {
             LOGGER.error("Exception while processing file", ex);
         }
     }
