@@ -37,9 +37,7 @@
         <module>sonar-checkstyle-processor</module>
         <module>sonar-pmd-plugin</module>
         <module>sonar-pmd-processor</module>
-        <!-- Currently disabled due to issues with Java 8
         <module>sonar-findbugs-processor</module>
-        -->
     </modules>
     
     <dependencies> 

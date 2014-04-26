@@ -45,4 +45,18 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- FB don't support Java 8 class format yet -->
+        <profile>
+            <id>Java 8 - No Testing</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+    </profiles>
 </project>
