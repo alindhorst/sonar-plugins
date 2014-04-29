@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE type PUBLIC
+          "-//NetBeans//DTD annotation type 1.1//EN"
+          "http://www.netbeans.org/dtds/annotation-type-1_1.dtd">
+<type name="de-alexanderlindhorst-sonarfindbugs-plugin-sonarfindbugsannotation"
+      description_key="SonarFindBugsAnnotation"
+      localizing_bundle="de.alexanderlindhorst.sonarfindbugs.plugin.Bundle"
+      visible="true" 
+      glyph="nbresloc:/de/alexanderlindhorst/sonarfindbugs/plugin/icons/findbugs.png"
+      type="line"   
+      severity="warning"
+      custom_sidebar_color="#dd00dd"
+      />
