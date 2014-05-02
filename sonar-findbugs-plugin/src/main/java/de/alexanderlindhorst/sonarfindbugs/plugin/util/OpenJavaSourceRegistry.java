@@ -1,32 +1,26 @@
 package de.alexanderlindhorst.sonarfindbugs.plugin.util;
 
-import java.io.StringReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.netbeans.api.java.source.JavaSource;
-import org.openide.awt.ToolbarPool.Configuration;
 import org.openide.cookies.LineCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.text.Line;
 import org.openide.util.Exceptions;
-import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.InputSource;
 
 import com.google.common.collect.Maps;
-import com.puppycrawl.tools.checkstyle.ConfigurationLoader;
-import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
-import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 
-import de.alexanderlindhorst.sonarcheckstyleprocessor.PerFileCheckstyleAuditRunner;
 import de.alexanderlindhorst.sonarfindbugs.plugin.annotation.SonarFindBugsAnnotation;
+import de.alexanderlindhorst.sonarfindbugsprocessor.FindbugsResultProvider;
+
+import edu.umd.cs.findbugs.BugInstance;
 
 import static de.alexanderlindhorst.sonarfindbugs.plugin.util.SonarFindBugsPluginUtils.getUnderlyingFile;
 import static de.alexanderlindhorst.sonarfindbugs.plugin.util.SonarFindBugsPluginUtils.getUnderlyingJavaFile;
@@ -78,18 +72,18 @@ public final class OpenJavaSourceRegistry {
         JavaSource source = JavaSource.forFileObject(fileObject);
         List<SonarFindBugsAnnotation> annotations = ANNOTATION_REGISTRY.get(source);
 
-        PerFileCheckstyleAuditRunner auditRunner = processFile(fileObject);
-        if (auditRunner == null) {
+        FindbugsResultProvider resultProvider = processFile(fileObject);
+        if (resultProvider == null) {
             return;
         }
         Line.Set lineSet = getLineCookieFromFileObject(fileObject).getLineSet();
-        for (LocalizedMessage localizedMessage : auditRunner.getErrorMessages()) {
-            int targetIndex = localizedMessage.getLineNo() - 1;
+        for (BugInstance bugInstance : resultProvider.getIssues()) {
+            int targetIndex = bugInstance.getPrimarySourceLineAnnotation().getStartLine();
             if (targetIndex < 0) {
                 targetIndex = 0;
             }
             Line current = lineSet.getCurrent(targetIndex);
-            SonarFindBugsAnnotation annotation = new SonarFindBugsAnnotation(localizedMessage);
+            SonarFindBugsAnnotation annotation = new SonarFindBugsAnnotation(bugInstance);
             annotation.attach(current);
             annotations.add(annotation);
         }
@@ -113,31 +107,8 @@ public final class OpenJavaSourceRegistry {
         registeredAnnotations.clear();
     }
 
-    private static PerFileCheckstyleAuditRunner processFile(FileObject fileObject) {
-        PerFileCheckstyleAuditRunner auditRunner = null;
-        try {
-            URL configUrl = SonarFindBugsPluginUtils.loadConfigUrl();
-            String configContent = SonarFindBugsPluginUtils.loadConfigurationContent();
-            LOGGER.debug("retrieved configuration: {}", configContent);
-            if (configContent == null) {
-                auditRunner = new PerFileCheckstyleAuditRunner(null, Utilities.toFile(fileObject.toURI()));
-            } else {
-                InputSource inputSource = new InputSource(new StringReader(configContent));
-                Configuration config = ConfigurationLoader.loadConfiguration(inputSource, null, true);
-                LOGGER.debug("processing file using configuration {} ({})", configUrl, config);
-                auditRunner = new PerFileCheckstyleAuditRunner(config, Utilities.toFile(fileObject.toURI()));
-            }
-        } catch (CheckstyleException checkstyleException) {
-            Exceptions.printStackTrace(checkstyleException);
-            return auditRunner;
-        }
-        auditRunner.run();
-        if (auditRunner.hasAuditProblems()) {
-            for (Throwable throwable : auditRunner.getAuditExceptions()) {
-                Exceptions.attachMessage(throwable, throwable.getLocalizedMessage());
-            }
-        }
-        return auditRunner;
+    private static FindbugsResultProvider processFile(FileObject fileObject) {
+        throw new UnsupportedOperationException("Not yet.");
     }
 
     private static LineCookie getLineCookieFromFileObject(FileObject fileObject) {

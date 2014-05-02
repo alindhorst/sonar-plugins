@@ -1,19 +1,20 @@
-package de.alexanderlindhorst.sonar.checkstyle.plugin.options;
+package de.alexanderlindhorst.sonar.findbugs.plugin.options;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.openide.util.Exceptions;
+
 import de.alexanderlindhorst.sonar.checkstyle.plugin.options.gui.SonarCheckstylePluginConfigPane;
 import de.alexanderlindhorst.sonarfindbugs.plugin.util.SonarFindBugsPluginUtils;
 
-final class SonarCheckstylePluginPanel extends javax.swing.JPanel {
+final class SonarFindBugsPluginPanel extends javax.swing.JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private final SonarCheckstylePluginOptionsPanelController controller;
+    private final SonarFindBugsPluginOptionsPanelController controller;
 
-    SonarCheckstylePluginPanel(SonarCheckstylePluginOptionsPanelController controller) {
+    SonarFindBugsPluginPanel(SonarFindBugsPluginOptionsPanelController controller) {
         this.controller = controller;
         initComponents();
     }

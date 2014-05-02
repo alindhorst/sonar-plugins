@@ -1,4 +1,4 @@
-package de.alexanderlindhorst.sonar.checkstyle.plugin.options;
+package de.alexanderlindhorst.sonar.findbugs.plugin.options;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -6,13 +6,12 @@ import java.beans.PropertyChangeSupport;
 import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.JComponent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @OptionsPanelController.SubRegistration(
         location = "Advanced",
@@ -21,10 +20,10 @@ import org.slf4j.LoggerFactory;
         keywordsCategory = "Advanced/SonarCheckstylePlugin")
 @org.openide.util.NbBundle.Messages({"AdvancedOption_DisplayName_SonarCheckstylePlugin=Sonar Checkstyle Plugin",
     "AdvancedOption_Keywords_SonarCheckstylePlugin=Sonar Checkstyle"})
-public final class SonarCheckstylePluginOptionsPanelController extends OptionsPanelController {
+public final class SonarFindBugsPluginOptionsPanelController extends OptionsPanelController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SonarCheckstylePluginOptionsPanelController.class);
-    private SonarCheckstylePluginPanel panel;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SonarFindBugsPluginOptionsPanelController.class);
+    private SonarFindBugsPluginPanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
 
@@ -86,9 +85,9 @@ public final class SonarCheckstylePluginOptionsPanelController extends OptionsPa
         pcs.removePropertyChangeListener(l);
     }
 
-    private SonarCheckstylePluginPanel getPanel() {
+    private SonarFindBugsPluginPanel getPanel() {
         if (panel == null) {
-            panel = new SonarCheckstylePluginPanel(this);
+            panel = new SonarFindBugsPluginPanel(this);
         }
         return panel;
     }
