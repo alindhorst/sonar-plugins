@@ -4,7 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.source.JavaSource;
+import org.netbeans.api.project.FileOwnerQuery;
+import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.api.project.SourceGroup;
+import org.netbeans.api.project.Sources;
 import org.openide.cookies.LineCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
@@ -108,6 +114,10 @@ public final class OpenJavaSourceRegistry {
     }
 
     private static FindbugsResultProvider processFile(FileObject fileObject) {
+        Project project = FileOwnerQuery.getOwner(fileObject);
+        List<String> sourceRootDirs = figureOutProjectSources(project);
+        List<String> classPaths = figureOutClassPaths(fileObject);
+        FindbugsResultProvider provider = new FindbugsResultProvider(sourceRootDirs, classPaths, null, null, null);
         throw new UnsupportedOperationException("Not yet.");
     }
 
@@ -123,5 +133,25 @@ public final class OpenJavaSourceRegistry {
             return null;
         }
         return dataObject.getLookup().lookup(LineCookie.class);
+    }
+
+    private static List<String> figureOutProjectSources(Project project) {
+        Sources sources = ProjectUtils.getSources(project);
+        SourceGroup[] sourceGroups = sources.getSourceGroups(Sources.TYPE_GENERIC);
+        List<String> sourceRootDirs = new ArrayList<String>();
+        for (SourceGroup sourceGroup : sourceGroups) {
+            sourceRootDirs.add(sourceGroup.getRootFolder().toURL().toExternalForm());
+        }
+        LOGGER.info("Found the following source directories: {}", sourceRootDirs);
+        return sourceRootDirs;
+    }
+
+    private static List<String> figureOutClassPaths(FileObject fileObject) {
+        ClassPath classPath = ClassPath.getClassPath(fileObject, ClassPath.COMPILE);
+        List<String> classPaths = new ArrayList<String>();
+        for (FileObject fileObject1 : classPath.getRoots()) {
+            classPaths.add(fileObject1.toURL().toExternalForm());
+        }
+        return classPaths;
     }
 }
