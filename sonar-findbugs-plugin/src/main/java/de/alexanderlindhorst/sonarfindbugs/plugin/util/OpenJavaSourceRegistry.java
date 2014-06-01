@@ -1,5 +1,6 @@
 package de.alexanderlindhorst.sonarfindbugs.plugin.util;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 import de.alexanderlindhorst.sonarfindbugs.plugin.annotation.SonarFindBugsAnnotation;
@@ -114,10 +116,18 @@ public final class OpenJavaSourceRegistry {
     }
 
     private static FindbugsResultProvider processFile(FileObject fileObject) {
+        String tempConfigFile = SonarFindBugsPluginUtils.getTempConfigFilePath();
+        if (Strings.isNullOrEmpty(tempConfigFile)) {
+            LOGGER.info("No temporary config file for Sonar FindBugs Plugin available. Did you configure an URL?");
+            return null;
+        }
+        File configFile = new File(tempConfigFile);
         Project project = FileOwnerQuery.getOwner(fileObject);
         List<String> sourceRootDirs = figureOutProjectSources(project);
         List<String> classPaths = figureOutClassPaths(fileObject);
-        FindbugsResultProvider provider = new FindbugsResultProvider(sourceRootDirs, classPaths, null, null, null);
+
+        FindbugsResultProvider provider = new FindbugsResultProvider(sourceRootDirs, classPaths, configFile, figureOutClassFile(
+                fileObject), null);
         throw new UnsupportedOperationException("Not yet.");
     }
 
@@ -153,5 +163,9 @@ public final class OpenJavaSourceRegistry {
             classPaths.add(fileObject1.toURL().toExternalForm());
         }
         return classPaths;
+    }
+
+    private static File figureOutClassFile(FileObject fileObject) {
+        throw new UnsupportedOperationException("Not yet");
     }
 }

@@ -1,7 +1,9 @@
 package de.alexanderlindhorst.sonarfindbugs.plugin.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -23,6 +25,7 @@ import org.openide.windows.TopComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static de.alexanderlindhorst.sonarfindbugs.plugin.util.OpenJavaSourceRegistry.markTopComponentClosed;
 import static de.alexanderlindhorst.sonarfindbugs.plugin.util.OpenJavaSourceRegistry.markTopComponentOpened;
 
@@ -37,6 +40,7 @@ public final class SonarFindBugsPluginUtils {
     private static final String CONFIG_PROPERTY = "config_url";
     private static final String CONFIG_CONTENT = "config_content";
     private static final String CONFIG_MODIFICATION_TIME = "config_modification";
+    private static final String CONFIG_TEMP_FILE = "config_temp_file";
 
     private SonarFindBugsPluginUtils() {
         //utils class
@@ -112,6 +116,7 @@ public final class SonarFindBugsPluginUtils {
             if (url == null || url.isEmpty()) {
                 preferences.put(CONFIG_PROPERTY, "");
                 preferences.put(CONFIG_CONTENT, "");
+                preferences.put(CONFIG_TEMP_FILE, "");
             } else {
                 URL configUrl;
                 try {
@@ -142,6 +147,15 @@ public final class SonarFindBugsPluginUtils {
         return null;
     }
 
+    public static String getTempConfigFilePath() {
+        Preferences preferences = NbPreferences.forModule(SonarFindBugsPluginUtils.class);
+        String configFile = preferences.get(CONFIG_TEMP_FILE, null);
+        if (isNullOrEmpty(configFile) || !new File(configFile).exists()) {
+            loadConfigurationContent();
+        }
+        return preferences.get(CONFIG_TEMP_FILE, null);
+    }
+
     public static String loadConfigurationContent() {
         Preferences preferences = NbPreferences.forModule(SonarFindBugsPluginUtils.class);
         String config = null;
@@ -151,11 +165,8 @@ public final class SonarFindBugsPluginUtils {
             String modificationValue = preferences.get(CONFIG_MODIFICATION_TIME, null);
             boolean refresh = false;
 
-            if (modificationValue != null && !modificationValue.isEmpty()) {
-                if (Long.valueOf(modificationValue).longValue() + (60 * 60 * 1000) < System.currentTimeMillis()) {
-                    refresh = true;
-
-                }
+            if (!isNullOrEmpty(modificationValue)) {
+                refresh = Long.valueOf(modificationValue).longValue() + (60 * 60 * 1000) < System.currentTimeMillis();
             } else {
                 //without timestamp refresh every time
                 refresh = true;
@@ -177,6 +188,14 @@ public final class SonarFindBugsPluginUtils {
                 }
             } else {
                 config = preferences.get(CONFIG_CONTENT, null);
+                String configFile = preferences.get(CONFIG_TEMP_FILE, null);
+                if (isNullOrEmpty(configFile) || !new File(configFile).exists()) {
+                    try {
+                        writeConfigToTempFile(config);
+                    } catch (IOException ex) {
+                        Exceptions.printStackTrace(ex);
+                    }
+                }
             }
         }
         return config;
@@ -194,5 +213,16 @@ public final class SonarFindBugsPluginUtils {
             builder.append((char) value);
         } while (value >= 0);
         return builder.toString();
+    }
+
+    private static void writeConfigToTempFile(String config) throws IOException {
+        Preferences preferences = NbPreferences.forModule(SonarFindBugsPluginUtils.class);
+        File tempFile = File.createTempFile("nb_fb_", ".xml");
+        tempFile.deleteOnExit();
+        PrintWriter writer = new PrintWriter(tempFile);
+        writer.write(config);
+        writer.flush();
+        writer.close();
+        preferences.put(CONFIG_TEMP_FILE, tempFile.getCanonicalPath());
     }
 }
